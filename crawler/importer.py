@@ -1,14 +1,18 @@
 import argparse
 from datetime import datetime
 import sqlalchemy as sa
-import os
+import os, os.path
 
 from odo import odo
 import dask.dataframe as df
 
 def main():
-    frame = df.read_csv('../test-lists/lists/my.csv')
-    frame['country_code'] = 'my'
+    parser = argparse.ArgumentParser(description='Short sample app')
+    parser.parser.add_argument('file')
+    args.parser.parse_args()
+
+    frame = df.read_csv(args.file)
+    frame['country_code'] = os.path.basename(args.file)
     frame['import_date'] = datetime.now()
 
     odo(
