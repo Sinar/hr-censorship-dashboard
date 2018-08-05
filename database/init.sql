@@ -1,34 +1,32 @@
-BEGIN;
-
-CREATE TABLE category (
-    category_id CHARACTER,
-    description TEXT,
-    PRIMARY KEY(category_id)
-);
+START TRANSACTION;
 
 CREATE TABLE sites (
-    country_code CHARACTER,
-    site_url CHARACTER,
-    category_id CHARACTER,
-    date_added TIMESTAMP WTIH TIME ZONE,
-    source CHARACTER,
+    import_date TIMESTAMP NOT NULL,
+    country_code VARCHAR(5) NOT NULL,
+    url VARCHAR(300) NOT NULL,
+    category_code VARCHAR(255) NOT NULL,
+    category_description TEXT,
+    date_added TIMESTAMP NOT NULL,
+    source VARCHAR(255) NOT NULL,
     notes TEXT,
-    PRIMARY KEY(country_code, site_url)
-);
+    PRIMARY KEY(import_date, country_code, url)
+)
+ENGINE = InnoDB;
 
 CREATE TABLE measurements (
-    measurement_id CHARACTER,
-    anomaly BOOLEAN,
-    confirmed BOOLEAN,
-    failure BOOLEAN,
-    site_url CHARACTER,
-    start_time TIMESTAMP WITH TIME ZONE,
-    measurement_url CHARACTER,
-    probe_asn CHARACTER,
-    probe_cc CHARACTER,
-    report_id CHARACTER,
-    test_name CHARACTER,
+    measurement_id VARCHAR(255) NOT NULL,
+    anomaly BOOLEAN NOT NULL,
+    confirmed BOOLEAN NOT NULL,
+    failure BOOLEAN NOT NULL,
+    site_url VARCHAR(300) NOT NULL NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    measurement_url TEXT NOT NULL,
+    probe_asn VARCHAR(255) NOT NULL,
+    probe_cc VARCHAR(5) NOT NULL,
+    report_id VARCHAR(255) NOT NULL,
+    test_name VARCHAR(255) NOT NULL,
     PRIMARY KEY(measurement_id)
-);
+)
+ENGINE = InnoDB;
 
-END;
+COMMIT;
