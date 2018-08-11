@@ -1,0 +1,8 @@
+FROM python:3
+
+RUN pip install odo dask[complete] pymysql &&\
+    mkdir -p /opt/crawler
+
+COPY importer.py /opt/crawler/crawler.py
+
+CMD ["python", "/opt/crawler/crawler.py"]
