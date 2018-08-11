@@ -4,21 +4,20 @@ services:
     build:
       context: './crawler'
       dockerfile: './Dockerfile-importer'
-    networks: ''
     env_file:
       - db-variables.env
     environment:
-      IMPORT_FILE: '/var/lib/test-lists/lists/my.env'
+      IMPORT_FILE: '/var/lib/test-lists/lists/my.csv'
     volumes:
       - ./test-lists:/var/lib/test-lists
-    restart: no
+    restart: 'no'
   crawler-my:
     build:
       context: './crawler'
       dockerfile: './Dockerfile-crawler'
-    networks: ''
     env_file:
       - db-variables.env
     environment:
+      SLEEP_TIME: 1
       COUNTRY_CODE: 'MY'
-    restart: always
+    restart: 'always'
