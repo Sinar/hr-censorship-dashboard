@@ -8,9 +8,9 @@ services:
     env_file:
       - db-variables.env
     environment:
-      IMPORT_FILE: '/test-lists/lists/my.env'
+      IMPORT_FILE: '/var/lib/test-lists/lists/my.env'
     volumes:
-      - ./test-lists:/test-lists
+      - ./test-lists:/var/lib/test-lists
     restart: no
   crawler-my:
     build:
