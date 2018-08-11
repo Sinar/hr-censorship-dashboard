@@ -1,5 +1,4 @@
 from datetime import datetime
-import sqlalchemy as sa
 import os, os.path
 
 from odo import odo
@@ -7,11 +6,10 @@ import dask.dataframe as df
 
 
 def main():
-    frame = df.read_csv(args.file)
+    _file = os.environ.get('IMPORT_FILE', 'test-lists/lists/my.csv')
+    frame = df.read_csv(_file)
     frame['country_code'] = os.path.splitext(
-        os.path.basename(
-            os.environ.get('IMPORT_FILE', 'test-lists/lists/my.csv')))[
-                0].upper()
+        os.path.basename(_file))[0].upper()
     frame['import_date'] = datetime.now()
 
     odo(frame.compute().fillna(''),
