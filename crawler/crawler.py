@@ -49,10 +49,10 @@ with conn:
                 for result in result_list.get('results', []):
                     _insert_cursor.execute(
                         '''
-                                           REPLACE
-                                           INTO     measurements({})
-                                           VALUES   ({})
-                                           '''.format(
+                        REPLACE
+                        INTO     measurements({})
+                        VALUES   ({})
+                        '''.format(
                             ', '.join(FIELDS), ', '.join(
                                 '%s' for _ in range(len(FIELDS)))),
                         tuple(
@@ -60,4 +60,4 @@ with conn:
                             if field == 'measurement_start_time' else
                             result[field] for field in FIELDS))
 
-            time.sleep(float(os.environ.get('SLEEP_TIME', 1)))
+            time.sleep(float(os.environ.get('SLEEP_TIME', 2)))
