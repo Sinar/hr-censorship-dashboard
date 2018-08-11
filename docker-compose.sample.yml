@@ -1,0 +1,21 @@
+version: "3"
+services:
+  importer-my:
+    image: ''
+    networks: ''
+    env_file:
+      - db-variables.env
+    environment:
+      IMPORT_FILE: '/test-lists/lists/my.env'
+    deploy:
+      restart_policy:
+        condition: any
+    volumes:
+      - ./test-lists:/test-lists
+  crawler-my:
+    image: ''
+    networks: ''
+    env_file:
+      - db-variables.env
+    environment:
+      COUNTRY_CODE: 'MY'
