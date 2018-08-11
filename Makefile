@@ -10,5 +10,4 @@ up:
 
 import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi;
-	pwd
 	docker-compose up importer-my
