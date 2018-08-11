@@ -1,4 +1,3 @@
-import argparse
 from datetime import datetime
 import sqlalchemy as sa
 import os, os.path
@@ -6,22 +5,22 @@ import os, os.path
 from odo import odo
 import dask.dataframe as df
 
-def main():
-    parser = argparse.ArgumentParser(description='Short sample app')
-    parser.parser.add_argument('file')
-    args.parser.parse_args()
 
+def main():
     frame = df.read_csv(args.file)
-    frame['country_code'] = os.path.basename(args.file)
+    frame['country_code'] = os.path.splitext(
+        os.path.basename(
+            os.environ.get('IMPORT_FILE', 'test-lists/lists/my.csv')))[
+                0].upper()
     frame['import_date'] = datetime.now()
 
-    odo(
-        frame.compute().fillna(''),
-        'mysql+pymysql://{}:{}@{}:{}/censorship::sites'.format(
+    odo(frame.compute().fillna(''),
+        'mysql+pymysql://{}:{}@{}:{}/{}::sites'.format(
             os.environ.get('DB_USER', 'root'),
             os.environ.get('DB_PASS', 'abc123'),
             os.environ.get('DB_HOST', 'localhost'),
-            os.environ.get('DB_PORT', '3306')),
+            os.environ.get('DB_PORT', '3306'),
+            os.environ.get('DB_NAME', 'censorship')),
         dshape="""
                var * {
                    url: string,
@@ -34,6 +33,7 @@ def main():
                    import_date: datetime,
                }
                """)
+
 
 if __name__ == '__main__':
     main()
