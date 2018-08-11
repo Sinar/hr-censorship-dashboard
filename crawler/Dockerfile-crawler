@@ -1,6 +1,6 @@
 FROM python:3
 
-RUN pip install odo dask[complete] pymysql &&\
+RUN pip install python-dateutil requests pymysql &&\
     mkdir -p /opt/crawler
 
 COPY importer.py /opt/crawler/crawler.py
