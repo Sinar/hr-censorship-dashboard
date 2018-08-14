@@ -1,0 +1,23 @@
+version: "3"
+services:
+  importer-my:
+    build:
+      context: './crawler'
+      dockerfile: './Dockerfile-importer'
+    env_file:
+      - db-variables.env
+    environment:
+      IMPORT_FILE: '/var/lib/test-lists/lists/my.csv'
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: 'no'
+  crawler-my:
+    build:
+      context: './crawler'
+      dockerfile: './Dockerfile-crawler'
+    env_file:
+      - db-variables.env
+    environment:
+      SLEEP_TIME: 1
+      COUNTRY_CODE: 'MY'
+    restart: 'always'

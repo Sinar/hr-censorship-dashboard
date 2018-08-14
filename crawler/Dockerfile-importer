@@ -1,0 +1,8 @@
+FROM python:3
+
+RUN pip install 'networkx<2.0' odo dask[complete] pymysql SQLAlchemy &&\
+    mkdir -p /opt/importer
+
+COPY importer.py /opt/importer/importer.py
+
+CMD ["python", "/opt/importer/importer.py"]
