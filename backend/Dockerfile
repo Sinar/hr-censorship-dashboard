@@ -7,4 +7,4 @@ COPY index.py /opt/dashboard-api/index.py
 
 WORKDIR "/opt/dashboard-api"
 
-CMD ["gunicorn", "index:__hug_wsgi__"]
+CMD ["gunicorn", "-w", "4", "--bind", "0.0.0.0:8000", "index:__hug_wsgi__"]
