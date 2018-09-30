@@ -106,25 +106,15 @@ def country_get_sites(hug_db, country):
 @hug.local()
 @hug.get('/api/history/country/{country}/duration/week')
 def history_week_get_country(hug_db, country):
-    site_list = defaultdict(defaultdict(list))
+    site_list = defaultdict(lambda: defaultdict(list))
     with hug_db.cursor() as _cursor:
         _cursor.execute(
             '''
-            SELECT      m.*
+            SELECT      *
             FROM        measurements m
-            JOIN        (
-                SELECT      probe_asn, measurement_url, MAX(measurement_start_time) AS latest
-                FROM        measurements
-                WHERE       LOWER(probe_cc) = %s
-                GROUP BY    probe_asn, measurement_url
-            ) mmax
-            ON          m.probe_asn = mmax.probe_asn
-            AND         m.measurement_url = mmax.measurement_url
-            AND         m.measurement_start_time = mmax.latest
             WHERE       LOWER(probe_cc) = %s AND anomaly = TRUE AND measurement_start_time >= %s
             ORDER BY    measurement_start_time DESC
-            ''', (country.lower(), country.lower(),
-                  datetime.now() - timedelta(days=7)))
+            ''', (country.lower(), datetime.now() - timedelta(days=7)))
 
         for row in _cursor.fetchall():
             site_list[row['measurement_url']][row['probe_asn']].append(row)
@@ -139,7 +129,7 @@ def history_week_get_country(hug_db, country):
                     'as_number': as_number,
                     'measurements': measurements
                 } for as_number, measurements in as_list.items()]
-            } for site_url, as_list in as_list.items()]
+            } for site_url, as_list in site_list.items()]
         }
 
 
@@ -150,23 +140,75 @@ def history_week_get_site(hug_db, country, url):
     with hug_db.cursor() as _cursor:
         _cursor.execute(
             '''
-            SELECT      m.*
-            FROM        measurements m
-            JOIN        (
-                SELECT      probe_asn, measurement_url, MAX(measurement_start_time) AS latest
-                FROM        measurements
-                WHERE       LOWER(probe_cc) = %s
-                GROUP BY    probe_asn, measurement_url
-            ) mmax
-            ON          m.probe_asn = mmax.probe_asn
-            AND         m.measurement_url = mmax.measurement_url
-            AND         m.measurement_start_time = mmax.latest
+            SELECT      *
+            FROM        measurements
             WHERE       LOWER(probe_cc) = %s AND anomaly = TRUE
                         AND measurement_start_time >= %s
                         AND measurement_url LIKE '%%%s%%'
             ORDER BY    measurement_start_time DESC
             ''', (country.lower(), country.lower(),
                   datetime.now() - timedelta(days=7), url))
+
+        for row in _cursor.fetchall():
+            as_list[row['probe_asn']].append(row)
+
+        return {
+            'country':
+            country,
+            'site_url':
+            url,
+            'as_list': [{
+                'as_number': as_number,
+                'measurements': measurements
+            } for as_number, measurements in as_list.items()]
+        }
+
+
+@hug.local()
+@hug.get('/api/history/country/{country}/duration/year')
+def history_year_get_country(hug_db, country):
+    site_list = defaultdict(lambda: defaultdict(list))
+    with hug_db.cursor() as _cursor:
+        _cursor.execute(
+            '''
+            SELECT      *
+            FROM        measurements
+            WHERE       LOWER(probe_cc) = %s AND anomaly = TRUE AND measurement_start_time >= %s
+            ORDER BY    measurement_start_time DESC
+            ''', (country.lower(), datetime.now() - timedelta(days=365)))
+
+        for row in _cursor.fetchall():
+            site_list[row['measurement_url']][row['probe_asn']].append(row)
+
+        return {
+            'country':
+            country,
+            'sites': [{
+                'site_url':
+                site_url,
+                'as_list': [{
+                    'as_number': as_number,
+                    'measurements': measurements
+                } for as_number, measurements in as_list.items()]
+            } for site_url, as_list in site_list.items()]
+        }
+
+
+@hug.local()
+@hug.get('/api/history/country/{country}/site/{url}/duration/year')
+def history_year_get_site(hug_db, country, url):
+    as_list = defaultdict(list)
+    with hug_db.cursor() as _cursor:
+        _cursor.execute(
+            '''
+            SELECT      *
+            FROM        measurements
+            WHERE       LOWER(probe_cc) = %s AND anomaly = TRUE
+                        AND measurement_start_time >= %s
+                        AND measurement_url LIKE '%%%s%%'
+            ORDER BY    measurement_start_time DESC
+            ''', (country.lower(), country.lower(),
+                  datetime.now() - timedelta(days=365), url))
 
         for row in _cursor.fetchall():
             as_list[row['probe_asn']].append(row)
