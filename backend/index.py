@@ -6,6 +6,9 @@ import hug
 import pymysql.cursors
 import pymysql
 
+api = hug.API(__name__)
+api.http.add_middleware(hug.middleware.CORSMiddleware(api, max_age=10))
+
 
 @hug.directive()
 def db(**kwargs):
@@ -22,7 +25,7 @@ def db(**kwargs):
 @hug.local()
 @hug.get('/api/anomaly/country/{country}', output=hug.output_format.json)
 def country_get_anomaly(hug_db, country):
-    as_list = defaultdict(list)
+    sites = defaultdict(lambda: defaultdict(list))
     with hug_db.cursor() as _cursor:
         _cursor.execute(
             '''
@@ -43,15 +46,19 @@ def country_get_anomaly(hug_db, country):
                   datetime.now() - timedelta(hours=12)))
 
         for row in _cursor.fetchall():
-            as_list[row['probe_asn']].append(row)
+            sites[row['measurement_url']][row['probe_asn']].append(row)
 
     return {
         'country':
         country,
-        'as_list': [{
-            'as_number': asn,
-            'measurements': rows
-        } for asn, rows in as_list.items()]
+        'sites': [{
+            'site_url':
+            site,
+            'as_list': [{
+                'as_number': asn,
+                'measurements': measurements
+            } for asn, measurements in as_list.item()]
+        } for site, as_list in sites.items()]
     }
 
 
