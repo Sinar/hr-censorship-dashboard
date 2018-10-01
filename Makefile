@@ -1,6 +1,8 @@
 .PHONY: build, up, import
 
 build:
+	docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:8 yarn build
+
 	docker pull python:3 && \
 		docker-compose build --force-rm
 

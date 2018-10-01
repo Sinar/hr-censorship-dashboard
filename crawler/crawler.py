@@ -20,6 +20,7 @@ conn = pymysql.connect(
     password=os.environ.get('DB_PASS', 'abc123'),
     db=os.environ.get('DB_NAME', 'censorship'),
     charset='utf8mb4',
+    autocommit=True,
     cursorclass=pymysql.cursors.DictCursor)
 
 with conn:
@@ -52,9 +53,8 @@ with conn:
                         REPLACE
                         INTO     measurements({})
                         VALUES   ({})
-                        '''.format(
-                            ', '.join(FIELDS), ', '.join(
-                                '%s' for _ in range(len(FIELDS)))),
+                        '''.format(', '.join(FIELDS), ', '.join(
+                            '%s' for _ in range(len(FIELDS)))),
                         tuple(
                             dateutil.parser.parse(result[field])
                             if field == 'measurement_start_time' else
