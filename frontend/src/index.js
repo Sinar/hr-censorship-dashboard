@@ -8,6 +8,9 @@ import registerServiceWorker from './registerServiceWorker';
 import dashboardApp from './dashboard';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'primereact/resources/themes/nova-light/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
 
 ReactDOM.render(
     <Provider store={createStore(dashboardApp)}>
