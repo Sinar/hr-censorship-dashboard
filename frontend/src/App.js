@@ -7,6 +7,9 @@ import AnomalyCurrentContainer from './AnomalyCurrent';
 import {make_anomaly_current} from './AnomalyCurrent';
 import AnomalySummaryContainer from './AnomalySummary';
 import {make_anomaly_summary} from './AnomalySummary';
+import AnomalyCountryContainer from './AnomalyCountry';
+import AnomalySiteContainer from './AnomalySite';
+import AnomalyIncidentContainer from './AnomalyIncident';
 import {category_fetch, country_fetch} from './fetcher';
 
 class AppWidget extends Component {
@@ -51,7 +54,13 @@ class AppWidget extends Component {
                 result = <AnomalySummaryContainer query={this.props.query} />;
                 break;
             case 'ANOMALY_COUNTRY':
-                result = <div>To be continued</div>;
+                result = <AnomalyCountryContainer query={this.props.query} />;
+                break;
+            case 'ANOMALY_SITE':
+                result = <AnomalySiteContainer query={this.props.query} />;
+                break;
+            case 'ANOMALY_INCIDENT':
+                result = <AnomalyIncidentContainer query={this.props.query} />;
                 break;
             default:
                 break;

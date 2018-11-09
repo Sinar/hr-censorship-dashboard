@@ -44,6 +44,13 @@ with conn:
                 'https://api.ooni.io/api/v1/measurements',
                 params={'probe_cc': row['country_code'],
                         'input': row['url']})
+
+            if not response.ok:
+                logging.info(
+                    '%s: Error fetching measurements for %s, skipping',
+                    os.environ.get('COUNTRY_CODE', 'MY'), row['url'])
+                continue
+
             result_list = response.json()
 
             with conn.cursor() as _insert_cursor:
@@ -61,3 +68,5 @@ with conn:
                             result[field] for field in FIELDS))
 
             time.sleep(float(os.environ.get('SLEEP_TIME', 2)))
+
+        conn.commit()

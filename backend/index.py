@@ -163,7 +163,7 @@ def history_year_get_country(hug_db, year, country):
         return {
             'country':
             country,
-            'sites': [{
+            'site_list': [{
                 'site_url':
                 site_url,
                 'as_list': [{

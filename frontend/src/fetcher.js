@@ -7,6 +7,13 @@ function make_populate_anomaly_current(data) {
     };
 }
 
+function make_populate_anomaly_country(data) {
+    return {
+        type: 'POPULATE_ANOMALY_COUNTRY',
+        data: data
+    };
+}
+
 function make_populate_asn(data) {
     return {
         type: 'POPULATE_ASN',
@@ -88,6 +95,29 @@ export function country_fetch(dispatch) {
     fetch(`${BASE_URL}/api/country`)
         .then(response => response.json())
         .then(data => dispatch(make_populate_country(data['country_list'])));
+}
+
+export function country_history_fetch(dispatch, year, country) {
+    fetch(`${BASE_URL}/api/history/year/${year}/country/${country}`)
+        .then(response => response.json())
+        .then(data => {
+            dispatch(
+                make_populate_anomaly_country({
+                    [year]: {
+                        [country]: data.site_list.reduce((current, site) => {
+                            current[site.site_url] = site.as_list.reduce(
+                                (_current, asn) => {
+                                    _current[asn.as_number] = asn.measurements;
+                                    return _current;
+                                },
+                                {}
+                            );
+                            return current;
+                        }, {})
+                    }
+                })
+            );
+        });
 }
 
 export function site_fetch(dispatch, country) {

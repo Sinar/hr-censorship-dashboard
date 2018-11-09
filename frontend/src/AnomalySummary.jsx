@@ -4,6 +4,7 @@ import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 import {summary_fetch} from './fetcher.js';
+import {make_anomaly_country} from './AnomalyCountry';
 
 export function make_anomaly_summary(year = 2018) {
     return {
@@ -11,17 +12,6 @@ export function make_anomaly_summary(year = 2018) {
         query: {
             type: 'ANOMALY_SUMMARY',
             year: year
-        }
-    };
-}
-
-function make_anomaly_country(year, site) {
-    return {
-        type: 'GO_ANOMALY_COUNTRY',
-        query: {
-            type: 'ANOMALY_COUNTRY',
-            year: year,
-            site: site
         }
     };
 }
@@ -75,19 +65,13 @@ class AnomalySummaryWidget extends Component {
     navbar_get_year(year) {
         return (
             <NavItem>
-                {(year === this.props.query.year && (
-                    <NavLink
-                        href="#"
-                        active
-                        onClick={e => this.handle_click(e, year)}
-                    >
-                        {year}
-                    </NavLink>
-                )) || (
-                    <NavLink href="#" onClick={e => this.handle_click(e, year)}>
-                        {year}
-                    </NavLink>
-                )}
+                <NavLink
+                    href="#"
+                    active={year === this.props.query.year}
+                    onClick={e => this.handle_click(e, year)}
+                >
+                    {year}
+                </NavLink>
             </NavItem>
         );
     }

@@ -6,6 +6,10 @@ export default function dashboardApp(state = {}, action) {
             result = populate_anomaly_current(state, action);
             break;
 
+        case 'POPULATE_ANOMALY_COUNTRY':
+            result = populate_anomaly_country(state, action);
+            break;
+
         case 'POPULATE_ASN':
             result = populate_asn(state, action);
             break;
@@ -16,6 +20,10 @@ export default function dashboardApp(state = {}, action) {
 
         case 'POPULATE_COUNTRY':
             result = populate_country(state, action);
+            break;
+
+        case 'POPULATE_INCIDENT':
+            result = populate_incident(state, action);
             break;
 
         case 'POPULATE_SITE':
@@ -29,6 +37,8 @@ export default function dashboardApp(state = {}, action) {
         case 'GO_ANOMALY_COUNTRY':
         case 'GO_ANOMALY_CURRENT':
         case 'GO_ANOMALY_SUMMARY':
+        case 'GO_ANOMALY_SITE':
+        case 'GO_ANOMALY_INCIDENT':
             result = query_update(state, action);
             break;
         default:
@@ -41,6 +51,12 @@ export default function dashboardApp(state = {}, action) {
 function query_update(state, action) {
     return Object.assign({}, state, {
         query: Object.assign({}, action.query)
+    });
+}
+
+function populate_anomaly_country(state, action) {
+    return Object.assign({}, state, {
+        history: Object.assign({}, state.history || {}, action.data)
     });
 }
 
@@ -65,6 +81,12 @@ function populate_category(state, action) {
 function populate_country(state, action) {
     return Object.assign({}, state, {
         country: action.data
+    });
+}
+
+function populate_incident(state, action) {
+    return Object.assign({}, state, {
+        incident: Object.assign({}, state.incident || {}, action.data)
     });
 }
 

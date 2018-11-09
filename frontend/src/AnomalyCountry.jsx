@@ -1,28 +1,30 @@
 import React, {Component} from 'react';
-import {Nav, NavItem, NavLink} from 'reactstrap';
 import {connect} from 'react-redux';
+import {asn_fetch, site_fetch, country_history_fetch} from './fetcher.js';
+import {Nav, NavItem, NavLink} from 'reactstrap';
+import {Button, ButtonGroup} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {make_anomaly_site} from './AnomalySite';
 
-import {asn_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
-
-export function make_anomaly_current(country = 'my') {
+export function make_anomaly_country(year, country) {
     return {
-        type: 'GO_ANOMALY_CURRENT',
+        type: 'GO_ANOMALY_COUNTRY',
         query: {
-            type: 'ANOMALY_CURRENT',
+            type: 'ANOMALY_COUNTRY',
+            year: year,
             country: country
         }
     };
 }
 
-class AnomalyCurrentWidget extends Component {
+class AnomalyCountryWidget extends Component {
     constructor(props) {
         super(props);
 
         this.handle_load = props.handle_load.bind(this);
-        this.handle_click = props.handle_click.bind(this);
+        this.handle_click_country = props.handle_click_country.bind(this);
+        this.handle_click_year = props.handle_click_year.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
     }
 
@@ -30,17 +32,56 @@ class AnomalyCurrentWidget extends Component {
         this.handle_load();
     }
 
-    link_get(country) {
+    country_get_tab(country) {
         return (
             <NavItem key={country}>
                 <NavLink
                     active={country === this.props.query.country}
-                    onClick={e => this.handle_click(e, country)}
-                    href="#"
+                    onClick={e => this.handle_click_country(e, country)}
                 >
                     {country}
                 </NavLink>
             </NavItem>
+        );
+    }
+
+    year_get_button(year) {
+        return (
+            <Button
+                key={year}
+                color={
+                    (year === this.props.query.year && 'primary') || 'secondary'
+                }
+                onClick={e => this.handle_click_year(e, year)}
+            >
+                {year}
+            </Button>
+        );
+    }
+
+    summary_get_table() {
+        let data = Object.entries(
+            this.props.summary[this.props.query.year][this.props.query.country]
+        ).map(([category_code, count]) => ({
+            category: category_code,
+            description: this.props.category[category_code]
+                .category_description,
+            count: count
+        }));
+        return (
+            <DataTable value={data}>
+                <Column
+                    key="category"
+                    field="category"
+                    header="Category code"
+                />
+                <Column
+                    key="description"
+                    field="description"
+                    header="Category description"
+                />
+                <Column key="count" field="count" header="Anomaly count" />
+            </DataTable>
         );
     }
 
@@ -51,9 +92,9 @@ class AnomalyCurrentWidget extends Component {
             ] || []
         ).reduce((current, site) => {
             let anomaly =
-                (this.props.current[this.props.query.country] || {})[
-                    site.url
-                ] || {};
+                ((this.props.history[this.props.query.year] || {})[
+                    this.props.query.country
+                ] || {})[site.url] || {};
 
             if (Object.keys(anomaly).length > 0) {
                 current.push(
@@ -114,14 +155,26 @@ class AnomalyCurrentWidget extends Component {
         return (
             <div>
                 <h2>
-                    Current Inaccessible Sites for {this.props.query.country}
+                    Anomaly summary for {this.props.query.country} in year{' '}
+                    {this.props.query.year}
                 </h2>
+
                 <Nav tabs>
                     {this.props.country_list.map(country =>
-                        this.link_get(country)
+                        this.country_get_tab(country)
                     )}
                 </Nav>
+
                 <br />
+
+                <ButtonGroup>
+                    {this.year_get_button(2018)}
+                    {this.year_get_button(2017)}
+                </ButtonGroup>
+
+                <h3>Overview</h3>
+
+                {this.summary_get_table()}
 
                 {Object.entries(this.props.category).map(([_, category]) =>
                     this.category_get_summary(category)
@@ -133,36 +186,48 @@ class AnomalyCurrentWidget extends Component {
 
 export default connect(
     state => ({
-        current: state.current || [],
+        summary: state.summary || {},
+        history: state.history || {},
         country_list: state.country || [],
+        site: state.site || {},
         category: state.category || {},
-        asn: state.asn || [],
-        site: state.site || {}
+        asn: state.asn || {}
     }),
     dispatch => ({
-        handle_click(e, country) {
+        handle_click_country(e, country) {
             e.preventDefault();
 
-            anomaly_current_fetch(dispatch, country);
             asn_fetch(dispatch, country);
             site_fetch(dispatch, country);
-            dispatch(make_anomaly_current(country));
+            country_history_fetch(dispatch, this.props.query.year, country);
+            dispatch(make_anomaly_country(this.props.query.year, country));
         },
 
         handle_click_row(e) {
             dispatch(
                 make_anomaly_site(
-                    new Date().getFullYear(),
+                    this.props.query.year,
                     this.props.query.country,
                     e.data.site
                 )
             );
         },
 
+        handle_click_year(e, year) {
+            e.preventDefault();
+
+            country_history_fetch(dispatch, year, this.props.query.country);
+            dispatch(make_anomaly_country(year, this.props.query.country));
+        },
+
         handle_load() {
-            anomaly_current_fetch(dispatch, this.props.query.country);
             asn_fetch(dispatch, this.props.query.country);
             site_fetch(dispatch, this.props.query.country);
+            country_history_fetch(
+                dispatch,
+                this.props.query.year,
+                this.props.query.country
+            );
         }
     })
-)(AnomalyCurrentWidget);
+)(AnomalyCountryWidget);
