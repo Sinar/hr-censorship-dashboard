@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import './App.css';
 import {Container} from 'reactstrap';
-import {Navbar, NavbarBrand, Nav, NavItem, NavLink} from 'reactstrap';
+import {Alert, Navbar, NavbarBrand, Nav, NavItem, NavLink} from 'reactstrap';
 import {connect} from 'react-redux';
 import AnomalyCurrentContainer from './AnomalyCurrent';
 import {make_anomaly_current} from './AnomalyCurrent';
@@ -11,6 +11,24 @@ import AnomalyCountryContainer from './AnomalyCountry';
 import AnomalySiteContainer from './AnomalySite';
 import AnomalyIncidentContainer from './AnomalyIncident';
 import {category_fetch, country_fetch} from './fetcher';
+
+function make_loading_populate(date) {
+    return {
+        type: 'POPULATE_LOADING',
+        date: date
+    };
+}
+
+function make_loading_done(date) {
+    return {
+        type: 'LOADING_DONE',
+        date: date
+    };
+}
+
+function make_loading_reset() {
+    return {type: 'LOADING_RESET'};
+}
 
 class AppWidget extends Component {
     constructor(props) {
@@ -23,6 +41,10 @@ class AppWidget extends Component {
         this.handle_click_anomaly_summary = props.handle_click_anomaly_summary.bind(
             this
         );
+
+        this.handle_loading_populate = props.handle_loading_populate.bind(this);
+        this.handle_loading_done = props.handle_loading_done.bind(this);
+        this.handle_loading_reset = props.handle_loading_reset.bind(this);
     }
 
     componentDidMount() {
@@ -48,25 +70,68 @@ class AppWidget extends Component {
         let result = null;
         switch (this.props.query.type) {
             case 'ANOMALY_CURRENT':
-                result = <AnomalyCurrentContainer query={this.props.query} />;
+                result = (
+                    <AnomalyCurrentContainer
+                        delegate_loading_populate={this.handle_loading_populate}
+                        delegate_loading_done={this.handle_loading_done}
+                        delegate_loading_reset={this.handle_loading_reset}
+                        query={this.props.query}
+                    />
+                );
                 break;
             case 'ANOMALY_SUMMARY':
-                result = <AnomalySummaryContainer query={this.props.query} />;
+                result = (
+                    <AnomalySummaryContainer
+                        delegate_loading_populate={this.handle_loading_populate}
+                        delegate_loading_done={this.handle_loading_done}
+                        delegate_loading_reset={this.handle_loading_reset}
+                        query={this.props.query}
+                    />
+                );
                 break;
             case 'ANOMALY_COUNTRY':
-                result = <AnomalyCountryContainer query={this.props.query} />;
+                result = (
+                    <AnomalyCountryContainer
+                        delegate_loading_populate={this.handle_loading_populate}
+                        delegate_loading_done={this.handle_loading_done}
+                        delegate_loading_reset={this.handle_loading_reset}
+                        query={this.props.query}
+                    />
+                );
                 break;
             case 'ANOMALY_SITE':
-                result = <AnomalySiteContainer query={this.props.query} />;
+                result = (
+                    <AnomalySiteContainer
+                        delegate_loading_populate={this.handle_loading_populate}
+                        delegate_loading_done={this.handle_loading_done}
+                        delegate_loading_reset={this.handle_loading_reset}
+                        query={this.props.query}
+                    />
+                );
                 break;
             case 'ANOMALY_INCIDENT':
-                result = <AnomalyIncidentContainer query={this.props.query} />;
+                result = (
+                    <AnomalyIncidentContainer
+                        delegate_loading_populate={this.handle_loading_populate}
+                        delegate_loading_done={this.handle_loading_done}
+                        delegate_loading_reset={this.handle_loading_reset}
+                        query={this.props.query}
+                    />
+                );
                 break;
             default:
                 break;
         }
 
         return result;
+    }
+
+    loading_get_alert() {
+        if (this.props.loading.length > 0) {
+            return (
+                <Alert color="info">Page is fetching data, please wait.</Alert>
+            );
+        }
     }
 
     render() {
@@ -87,6 +152,7 @@ class AppWidget extends Component {
                         )}
                     </Nav>
                 </Navbar>
+                {this.loading_get_alert()}
                 {this.panel_get()}
             </Container>
         );
@@ -95,6 +161,7 @@ class AppWidget extends Component {
 
 export default connect(
     state => ({
+        loading: state.loading || [],
         query: state.query || {},
         category: state.category || []
     }),
@@ -112,12 +179,34 @@ export default connect(
         },
 
         handle_load() {
-            category_fetch(dispatch);
-            country_fetch(dispatch);
+            let [category_date, country_date] = [new Date(), new Date()];
 
-            if (Object.keys(this.props.query).length === 0) {
-                dispatch(make_anomaly_summary(2018));
-            }
+            this.handle_loading_populate(category_date);
+            this.handle_loading_populate(country_date);
+
+            category_fetch(dispatch, () => {
+                this.handle_loading_done(category_date);
+
+                country_fetch(dispatch, () => {
+                    this.handle_loading_done(country_date);
+
+                    if (Object.keys(this.props.query).length === 0) {
+                        dispatch(make_anomaly_summary(2018));
+                    }
+                });
+            });
+        },
+
+        handle_loading_populate(date) {
+            dispatch(make_loading_populate(date));
+        },
+
+        handle_loading_done(date) {
+            dispatch(make_loading_done(date));
+        },
+
+        handle_loading_reset() {
+            dispatch(make_loading_reset());
         }
     })
 )(AppWidget);

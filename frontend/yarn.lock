@@ -1741,6 +1741,10 @@ cosmiconfig@^2.1.0, cosmiconfig@^2.1.1:
     parse-json "^2.2.0"
     require-from-string "^1.1.0"
 
+country-list@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/country-list/-/country-list-1.1.1.tgz#daa9237456b443aee104161766aad2cf0883660b"
+
 create-ecdh@^4.0.0:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/create-ecdh/-/create-ecdh-4.0.3.tgz#c9111b6f33045c4697f144787f9254cdc77c45ff"

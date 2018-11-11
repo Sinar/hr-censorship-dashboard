@@ -5,6 +5,7 @@ import {Column} from 'primereact/column';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 import {summary_fetch} from './fetcher.js';
 import {make_anomaly_country} from './AnomalyCountry';
+import Countries from 'country-list';
 
 export function make_anomaly_summary(year = 2018) {
     return {
@@ -49,7 +50,10 @@ class AnomalySummaryWidget extends Component {
                     );
                     return current;
                 },
-                {country: country}
+                {
+                    country_name: Countries().getName(country),
+                    country: country
+                }
             )
         );
     }
@@ -85,8 +89,7 @@ class AnomalySummaryWidget extends Component {
                     {this.navbar_get_year(2017)}
                 </Nav>
                 <br />
-                {Object.keys(this.props.summary[this.props.query.year] || {})
-                    .length > 0 && (
+                {Object.keys(this.props.country_list || []).length > 0 && (
                     <DataTable
                         value={this.summary_get_table()}
                         scrollable={true}
@@ -95,7 +98,7 @@ class AnomalySummaryWidget extends Component {
                     >
                         <Column
                             key="country"
-                            field="country"
+                            field="country_name"
                             header="Country"
                             style={{width: '100px'}}
                         />
@@ -124,9 +127,15 @@ export default connect(
     }),
     dispatch => ({
         handle_click(e, year) {
+            let summary_date = new Date();
             e.preventDefault();
 
-            summary_fetch(dispatch, year);
+            this.props.delegate_loading_populate(summary_date);
+            summary_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(summary_date),
+                year
+            );
             dispatch(make_anomaly_summary(year));
         },
 
@@ -137,7 +146,16 @@ export default connect(
         },
 
         handle_load() {
-            summary_fetch(dispatch, this.props.query.year);
+            let summary_date = new Date();
+
+            this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(summary_date);
+            summary_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(summary_date),
+                this.props.query.year
+            );
         }
     })
 )(AnomalySummaryWidget);

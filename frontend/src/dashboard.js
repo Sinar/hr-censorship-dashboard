@@ -26,12 +26,20 @@ export default function dashboardApp(state = {}, action) {
             result = populate_incident(state, action);
             break;
 
+        case 'POPULATE_LOADING':
+            result = populate_loading(state, action);
+            break;
+
         case 'POPULATE_SITE':
             result = populate_site(state, action);
             break;
 
         case 'POPULATE_SUMMARY':
             result = populate_summary(state, action);
+            break;
+
+        case 'POPULATE_WIKIDATA':
+            result = populate_wikidata(state, action);
             break;
 
         case 'GO_ANOMALY_COUNTRY':
@@ -41,6 +49,15 @@ export default function dashboardApp(state = {}, action) {
         case 'GO_ANOMALY_INCIDENT':
             result = query_update(state, action);
             break;
+
+        case 'LOADING_DONE':
+            result = loading_done(state, action);
+            break;
+
+        case 'LOADING_RESET':
+            result = loading_reset(state, action);
+            break;
+
         default:
             result = Object.assign({}, state);
     }
@@ -90,6 +107,18 @@ function populate_incident(state, action) {
     });
 }
 
+function populate_loading(state, action) {
+    return Object.assign({}, state, {
+        loading: (state.loading || []).reduce(
+            (current, incoming) => {
+                current.push(incoming);
+                return current;
+            },
+            [action.date]
+        )
+    });
+}
+
 function populate_site(state, action) {
     return Object.assign({}, state, {
         site: Object.assign({}, state.site || {}, action.data)
@@ -99,5 +128,29 @@ function populate_site(state, action) {
 function populate_summary(state, action) {
     return Object.assign({}, state, {
         summary: Object.assign({}, state.summary || {}, action.data)
+    });
+}
+
+function populate_wikidata(state, action) {
+    return Object.assign({}, state, {
+        wikidata: Object.assign({}, state.wikidata || {}, action.data)
+    });
+}
+
+function loading_done(state, action) {
+    return Object.assign({}, state, {
+        loading: (state.loading || []).reduce((current, incoming) => {
+            if (incoming !== action.date) {
+                current.push(incoming);
+            }
+
+            return current;
+        }, [])
+    });
+}
+
+function loading_reset(state, _action) {
+    return Object.assign({}, state, {
+        loading: []
     });
 }
