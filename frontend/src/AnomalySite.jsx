@@ -122,8 +122,14 @@ export default connect(
     }),
     dispatch => ({
         handle_load() {
+            let history_date = new Date();
+
+            this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(history_date);
             country_history_fetch(
                 dispatch,
+                () => this.props.delegate_loading_done(history_date),
                 this.props.query.year,
                 this.props.query.country
             );

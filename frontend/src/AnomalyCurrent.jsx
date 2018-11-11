@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {make_anomaly_site} from './AnomalySite';
+import Countries from 'country-list';
 
 import {asn_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
 
@@ -111,10 +112,14 @@ class AnomalyCurrentWidget extends Component {
     }
 
     render() {
+        let summary = Object.entries(this.props.category).map(([_, category]) =>
+            this.category_get_summary(category)
+        );
         return (
             <div>
                 <h2>
-                    Current Inaccessible Sites for {this.props.query.country}
+                    Current Inaccessible Sites for{' '}
+                    {Countries().getName(this.props.query.country)}
                 </h2>
                 <Nav tabs>
                     {this.props.country_list.map(country =>
@@ -123,8 +128,11 @@ class AnomalyCurrentWidget extends Component {
                 </Nav>
                 <br />
 
-                {Object.entries(this.props.category).map(([_, category]) =>
-                    this.category_get_summary(category)
+                {(summary.filter(x => x).length > 0 && summary) || (
+                    <div>
+                        <h3>Nothing to show</h3>
+                        <p>All monitored sites are not blocked.</p>
+                    </div>
                 )}
             </div>
         );
@@ -141,11 +149,34 @@ export default connect(
     }),
     dispatch => ({
         handle_click(e, country) {
+            let [anomaly_date, asn_date, site_date] = [
+                new Date(),
+                new Date(),
+                new Date()
+            ];
             e.preventDefault();
 
-            anomaly_current_fetch(dispatch, country);
-            asn_fetch(dispatch, country);
-            site_fetch(dispatch, country);
+            this.props.delegate_loading_populate(asn_date);
+            asn_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(asn_date),
+                country
+            );
+
+            this.props.delegate_loading_populate(site_date);
+            site_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(site_date),
+                country
+            );
+
+            this.props.delegate_loading_populate(anomaly_date);
+            anomaly_current_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(anomaly_date),
+                country
+            );
+
             dispatch(make_anomaly_current(country));
         },
 
@@ -160,9 +191,32 @@ export default connect(
         },
 
         handle_load() {
-            anomaly_current_fetch(dispatch, this.props.query.country);
-            asn_fetch(dispatch, this.props.query.country);
-            site_fetch(dispatch, this.props.query.country);
+            let [anomaly_date, asn_date, site_date] = [
+                new Date(),
+                new Date(),
+                new Date()
+            ];
+
+            this.props.delegate_loading_populate(asn_date);
+            asn_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(asn_date),
+                this.props.query.country
+            );
+
+            this.props.delegate_loading_populate(site_date);
+            site_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(site_date),
+                this.props.query.country
+            );
+
+            this.props.delegate_loading_populate(anomaly_date);
+            anomaly_current_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(anomaly_date),
+                this.props.query.country
+            );
         }
     })
 )(AnomalyCurrentWidget);

@@ -6,6 +6,7 @@ import {Button, ButtonGroup} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {make_anomaly_site} from './AnomalySite';
+import Countries from 'country-list';
 
 export function make_anomaly_country(year, country) {
     return {
@@ -61,7 +62,9 @@ class AnomalyCountryWidget extends Component {
 
     summary_get_table() {
         let data = Object.entries(
-            this.props.summary[this.props.query.year][this.props.query.country]
+            (this.props.summary[this.props.query.year] || {})[
+                this.props.query.country
+            ] || {}
         ).map(([category_code, count]) => ({
             category: category_code,
             description: this.props.category[category_code]
@@ -155,7 +158,8 @@ class AnomalyCountryWidget extends Component {
         return (
             <div>
                 <h2>
-                    Anomaly summary for {this.props.query.country} in year{' '}
+                    Anomaly summary for{' '}
+                    {Countries().getName(this.props.query.country)} in year{' '}
                     {this.props.query.year}
                 </h2>
 
@@ -195,11 +199,38 @@ export default connect(
     }),
     dispatch => ({
         handle_click_country(e, country) {
+            let [asn_date, site_date, history_date] = [
+                new Date(),
+                new Date(),
+                new Date()
+            ];
+
             e.preventDefault();
 
-            asn_fetch(dispatch, country);
-            site_fetch(dispatch, country);
-            country_history_fetch(dispatch, this.props.query.year, country);
+            this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(asn_date);
+            asn_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(asn_date),
+                country
+            );
+
+            this.props.delegate_loading_populate(site_date);
+            site_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(site_date),
+                country
+            );
+
+            this.props.delegate_loading_populate(site_date);
+            country_history_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(history_date),
+                this.props.query.year,
+                country
+            );
+
             dispatch(make_anomaly_country(this.props.query.year, country));
         },
 
@@ -214,17 +245,48 @@ export default connect(
         },
 
         handle_click_year(e, year) {
+            let history_date = new Date();
             e.preventDefault();
 
-            country_history_fetch(dispatch, year, this.props.query.country);
+            this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(history_date);
+            country_history_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(history_date),
+                year,
+                this.props.query.country
+            );
+
             dispatch(make_anomaly_country(year, this.props.query.country));
         },
 
         handle_load() {
-            asn_fetch(dispatch, this.props.query.country);
-            site_fetch(dispatch, this.props.query.country);
+            let [asn_date, site_date, history_date] = [
+                new Date(),
+                new Date(),
+                new Date()
+            ];
+            this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(asn_date);
+            asn_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(asn_date),
+                this.props.query.country
+            );
+
+            this.props.delegate_loading_populate(site_date);
+            site_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(site_date),
+                this.props.query.country
+            );
+
+            this.props.delegate_loading_populate(history_date);
             country_history_fetch(
                 dispatch,
+                () => this.props.delegate_loading_done(history_date),
                 this.props.query.year,
                 this.props.query.country
             );

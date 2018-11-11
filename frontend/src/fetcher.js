@@ -49,7 +49,7 @@ function make_populate_summary(data) {
     };
 }
 
-export function anomaly_current_fetch(dispatch, country) {
+export function anomaly_current_fetch(dispatch, done_callback, country) {
     fetch(`${BASE_URL}/api/anomaly/country/${country}`)
         .then(response => response.json())
         .then(data => {
@@ -67,19 +67,24 @@ export function anomaly_current_fetch(dispatch, country) {
                     }, {})
                 })
             );
+
+            done_callback();
         });
 }
 
-export function asn_fetch(dispatch, country) {
+export function asn_fetch(dispatch, done_callback, country) {
     fetch(`${BASE_URL}/api/asn/${country}`)
         .then(response => response.json())
-        .then(data => dispatch(make_populate_asn({[data.country]: data.asn})));
+        .then(data => {
+            dispatch(make_populate_asn({[data.country]: data.asn}));
+            done_callback();
+        });
 }
 
-export function category_fetch(dispatch) {
+export function category_fetch(dispatch, done_callback) {
     fetch(`${BASE_URL}/api/category`)
         .then(response => response.json())
-        .then(data =>
+        .then(data => {
             dispatch(
                 make_populate_category(
                     data['category_list'].reduce((current, incoming) => {
@@ -87,17 +92,21 @@ export function category_fetch(dispatch) {
                         return current;
                     }, {})
                 )
-            )
-        );
+            );
+            done_callback();
+        });
 }
 
-export function country_fetch(dispatch) {
+export function country_fetch(dispatch, done_callback) {
     fetch(`${BASE_URL}/api/country`)
         .then(response => response.json())
-        .then(data => dispatch(make_populate_country(data['country_list'])));
+        .then(data => {
+            dispatch(make_populate_country(data['country_list']));
+            done_callback();
+        });
 }
 
-export function country_history_fetch(dispatch, year, country) {
+export function country_history_fetch(dispatch, done_callback, year, country) {
     fetch(`${BASE_URL}/api/history/year/${year}/country/${country}`)
         .then(response => response.json())
         .then(data => {
@@ -117,14 +126,15 @@ export function country_history_fetch(dispatch, year, country) {
                     }
                 })
             );
+            done_callback();
         });
 }
 
-export function site_fetch(dispatch, country) {
+export function site_fetch(dispatch, done_callback, country) {
     fetch(`${BASE_URL}/api/site/${country}`)
         .then(response => response.json())
         .then(data => {
-            return dispatch(
+            dispatch(
                 make_populate_site({
                     [country]: data.category_list.reduce(
                         (current, category) => {
@@ -135,13 +145,14 @@ export function site_fetch(dispatch, country) {
                     )
                 })
             );
+            done_callback();
         });
 }
 
-export function summary_fetch(dispatch, year) {
+export function summary_fetch(dispatch, done_callback, year) {
     fetch(`${BASE_URL}/api/summary/${year}`)
         .then(response => response.json())
-        .then(data =>
+        .then(data => {
             dispatch(
                 make_populate_summary({
                     [data.year]: data.country_list.reduce(
@@ -161,6 +172,7 @@ export function summary_fetch(dispatch, year) {
                         {}
                     )
                 })
-            )
-        );
+            );
+            done_callback();
+        });
 }
