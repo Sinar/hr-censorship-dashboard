@@ -108,7 +108,7 @@ class AnomalyIncidentWidget extends Component {
     blocking_get_cause() {
         return (
             (
-                (this.incident[this.props.query.measurement_id] || {})
+                (this.props.incident[this.props.query.measurement_id] || {})
                     .test_keys || {}
             ).blocking || 'non-deducible'
         );
@@ -117,19 +117,20 @@ class AnomalyIncidentWidget extends Component {
     render() {
         return (
             <div>
-                <div key="parameters">
-                    <h2>
-                        Anomaly report for measurement{' '}
-                        {this.props.query.measurement_id}
-                    </h2>
+                <h2>
+                    Anomaly report for measurement{' '}
+                    {this.props.query.measurement_id}
+                </h2>
 
-                    {this.parameter_get_table()}
+                <div key="parameters">{this.parameter_get_table()}</div>
+
+                <div>
+                    <h3>Method for blocking</h3>
+                    <p>
+                        Most probable method of blocking:{' '}
+                        <strong>{this.blocking_get_cause()}</strong>
+                    </p>
                 </div>
-
-                <p>
-                    Most probable method of blocking:{' '}
-                    <strong>{this.blocking_get_cause()}</strong>
-                </p>
 
                 <div key="events">
                     <h3>Notable events</h3>
