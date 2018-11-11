@@ -105,6 +105,15 @@ class AnomalyIncidentWidget extends Component {
         return <p>No data from wikidata</p>;
     }
 
+    blocking_get_cause() {
+        return (
+            (
+                (this.incident[this.props.query.measurement_id] || {})
+                    .test_keys || {}
+            ).blocking || 'non-deducible'
+        );
+    }
+
     render() {
         return (
             <div>
@@ -116,6 +125,11 @@ class AnomalyIncidentWidget extends Component {
 
                     {this.parameter_get_table()}
                 </div>
+
+                <p>
+                    Most probable method of blocking:{' '}
+                    <strong>{this.blocking_get_cause()}</strong>
+                </p>
 
                 <div key="events">
                     <h3>Notable events</h3>
