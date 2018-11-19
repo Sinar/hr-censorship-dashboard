@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = '';
 
 function make_populate_anomaly_current(data) {
     return {

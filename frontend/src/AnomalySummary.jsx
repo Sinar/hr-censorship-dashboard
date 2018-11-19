@@ -4,18 +4,7 @@ import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 import {summary_fetch} from './fetcher.js';
-import {make_anomaly_country} from './AnomalyCountry';
 import Countries from 'country-list';
-
-export function make_anomaly_summary(year = 2018) {
-    return {
-        type: 'GO_ANOMALY_SUMMARY',
-        query: {
-            type: 'ANOMALY_SUMMARY',
-            year: year
-        }
-    };
-}
 
 class AnomalySummaryWidget extends Component {
     constructor(props) {
@@ -28,6 +17,11 @@ class AnomalySummaryWidget extends Component {
 
     componentDidMount() {
         this.handle_load();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.match.params.year !== prevProps.match.params.year)
+            this.handle_load();
     }
 
     link_get(country) {
@@ -60,9 +54,9 @@ class AnomalySummaryWidget extends Component {
 
     summary_get_category_count(country, category) {
         return (
-            ((this.props.summary[this.props.query.year] || {})[country] || {})[
-                category
-            ] || 0
+            ((this.props.summary[this.props.match.params.year] || {})[
+                country
+            ] || {})[category] || 0
         );
     }
 
@@ -71,7 +65,7 @@ class AnomalySummaryWidget extends Component {
             <NavItem>
                 <NavLink
                     href="#"
-                    active={year === this.props.query.year}
+                    active={year === parseInt(this.props.match.params.year, 10)}
                     onClick={e => this.handle_click(e, year)}
                 >
                     {year}
@@ -83,7 +77,7 @@ class AnomalySummaryWidget extends Component {
     render() {
         return (
             <div>
-                <h2>Downtime summary for year {this.props.query.year}</h2>
+                <h2>Anomaly summary for year {this.props.match.params.year}</h2>
                 <Nav tabs>
                     {this.navbar_get_year(2018)}
                     {this.navbar_get_year(2017)}
@@ -136,12 +130,13 @@ export default connect(
                 () => this.props.delegate_loading_done(summary_date),
                 year
             );
-            dispatch(make_anomaly_summary(year));
+
+            this.props.history.push(`/summary/${year}`);
         },
 
         handle_click_row(e) {
-            dispatch(
-                make_anomaly_country(this.props.query.year, e.data.country)
+            this.props.history.push(
+                `/summary/${this.props.match.params.year}/${e.data.country}`
             );
         },
 
@@ -154,7 +149,7 @@ export default connect(
             summary_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(summary_date),
-                this.props.query.year
+                this.props.match.params.year
             );
         }
     })

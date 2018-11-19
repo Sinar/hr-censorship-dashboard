@@ -42,14 +42,6 @@ export default function dashboardApp(state = {}, action) {
             result = populate_wikidata(state, action);
             break;
 
-        case 'GO_ANOMALY_COUNTRY':
-        case 'GO_ANOMALY_CURRENT':
-        case 'GO_ANOMALY_SUMMARY':
-        case 'GO_ANOMALY_SITE':
-        case 'GO_ANOMALY_INCIDENT':
-            result = query_update(state, action);
-            break;
-
         case 'LOADING_DONE':
             result = loading_done(state, action);
             break;
@@ -63,12 +55,6 @@ export default function dashboardApp(state = {}, action) {
     }
 
     return result;
-}
-
-function query_update(state, action) {
-    return Object.assign({}, state, {
-        query: Object.assign({}, action.query)
-    });
 }
 
 function populate_anomaly_country(state, action) {

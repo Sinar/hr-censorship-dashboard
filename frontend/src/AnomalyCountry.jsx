@@ -5,19 +5,7 @@ import {Nav, NavItem, NavLink} from 'reactstrap';
 import {Button, ButtonGroup} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
-import {make_anomaly_site} from './AnomalySite';
 import Countries from 'country-list';
-
-export function make_anomaly_country(year, country) {
-    return {
-        type: 'GO_ANOMALY_COUNTRY',
-        query: {
-            type: 'ANOMALY_COUNTRY',
-            year: year,
-            country: country
-        }
-    };
-}
 
 class AnomalyCountryWidget extends Component {
     constructor(props) {
@@ -37,7 +25,7 @@ class AnomalyCountryWidget extends Component {
         return (
             <NavItem key={country}>
                 <NavLink
-                    active={country === this.props.query.country}
+                    active={country === this.props.match.params.country}
                     onClick={e => this.handle_click_country(e, country)}
                 >
                     {country}
@@ -51,7 +39,9 @@ class AnomalyCountryWidget extends Component {
             <Button
                 key={year}
                 color={
-                    (year === this.props.query.year && 'primary') || 'secondary'
+                    (year === parseInt(this.props.match.params.year, 10) &&
+                        'primary') ||
+                    'secondary'
                 }
                 onClick={e => this.handle_click_year(e, year)}
             >
@@ -62,8 +52,8 @@ class AnomalyCountryWidget extends Component {
 
     summary_get_table() {
         let data = Object.entries(
-            (this.props.summary[this.props.query.year] || {})[
-                this.props.query.country
+            (this.props.summary[this.props.match.params.year] || {})[
+                this.props.match.params.country
             ] || {}
         ).map(([category_code, count]) => ({
             category: category_code,
@@ -90,18 +80,20 @@ class AnomalyCountryWidget extends Component {
 
     category_get_sites(category) {
         return (
-            (this.props.site[this.props.query.country] || {})[
+            (this.props.site[this.props.match.params.country] || {})[
                 category.category_code
             ] || []
         ).reduce((current, site) => {
             let anomaly =
-                ((this.props.history[this.props.query.year] || {})[
-                    this.props.query.country
+                ((this.props.chistory[this.props.match.params.year] || {})[
+                    this.props.match.params.country
                 ] || {})[site.url] || {};
 
             if (Object.keys(anomaly).length > 0) {
                 current.push(
-                    (this.props.asn[this.props.query.country] || []).reduce(
+                    (
+                        this.props.asn[this.props.match.params.country] || []
+                    ).reduce(
                         (current, asn) => {
                             current[asn] = (anomaly[asn] || []).length;
                             return current;
@@ -136,16 +128,17 @@ class AnomalyCountryWidget extends Component {
                             header="Site URL"
                             style={{width: '350px'}}
                         />
-                        {(this.props.asn[this.props.query.country] || []).map(
-                            asn => (
-                                <Column
-                                    key={asn}
-                                    field={asn}
-                                    header={asn}
-                                    style={{width: '100px'}}
-                                />
-                            )
-                        )}
+                        {(
+                            this.props.asn[this.props.match.params.country] ||
+                            []
+                        ).map(asn => (
+                            <Column
+                                key={asn}
+                                field={asn}
+                                header={asn}
+                                style={{width: '100px'}}
+                            />
+                        ))}
                     </DataTable>
                 </div>
             );
@@ -159,8 +152,8 @@ class AnomalyCountryWidget extends Component {
             <div>
                 <h2>
                     Anomaly summary for{' '}
-                    {Countries().getName(this.props.query.country)} in year{' '}
-                    {this.props.query.year}
+                    {Countries().getName(this.props.match.params.country)} in
+                    year {this.props.match.params.year}
                 </h2>
 
                 <Nav tabs>
@@ -191,7 +184,7 @@ class AnomalyCountryWidget extends Component {
 export default connect(
     state => ({
         summary: state.summary || {},
-        history: state.history || {},
+        chistory: state.history || {},
         country_list: state.country || [],
         site: state.site || {},
         category: state.category || {},
@@ -227,20 +220,20 @@ export default connect(
             country_history_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(history_date),
-                this.props.query.year,
+                this.props.match.params.year,
                 country
             );
 
-            dispatch(make_anomaly_country(this.props.query.year, country));
+            this.props.history.push(
+                `/summary/${this.props.match.params.year}/${country}`
+            );
         },
 
         handle_click_row(e) {
-            dispatch(
-                make_anomaly_site(
-                    this.props.query.year,
-                    this.props.query.country,
-                    e.data.site
-                )
+            this.props.history.push(
+                `/summary/${this.props.match.params.year}/${
+                    this.props.match.params.country
+                }/${e.data.site}`
             );
         },
 
@@ -255,10 +248,12 @@ export default connect(
                 dispatch,
                 () => this.props.delegate_loading_done(history_date),
                 year,
-                this.props.query.country
+                this.props.match.params.country
             );
 
-            dispatch(make_anomaly_country(year, this.props.query.country));
+            this.props.history.push(
+                `/summary/${year}/${this.props.match.params.country}`
+            );
         },
 
         handle_load() {
@@ -273,22 +268,22 @@ export default connect(
             asn_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(asn_date),
-                this.props.query.country
+                this.props.match.params.country
             );
 
             this.props.delegate_loading_populate(site_date);
             site_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(site_date),
-                this.props.query.country
+                this.props.match.params.country
             );
 
             this.props.delegate_loading_populate(history_date);
             country_history_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(history_date),
-                this.props.query.year,
-                this.props.query.country
+                this.props.match.params.year,
+                this.props.match.params.country
             );
         }
     })

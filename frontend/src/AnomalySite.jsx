@@ -3,19 +3,6 @@ import {connect} from 'react-redux';
 import {country_history_fetch} from './fetcher.js';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
-import {make_anomaly_incident} from './AnomalyIncident';
-
-export function make_anomaly_site(year, country, site) {
-    return {
-        type: 'GO_ANOMALY_SITE',
-        query: {
-            type: 'ANOMALY_SITE',
-            year: year,
-            country: country,
-            site: site
-        }
-    };
-}
 
 class AnomalySiteWidget extends Component {
     constructor(props) {
@@ -31,9 +18,9 @@ class AnomalySiteWidget extends Component {
 
     anomaly_get_list() {
         return Object.entries(
-            ((this.props.history[this.props.query.year] || {})[
-                this.props.query.country
-            ] || {})[this.props.query.site] || {}
+            ((this.props.chistory[this.props.match.params.year] || {})[
+                this.props.match.params.country
+            ] || {})[this.props.match.params.site] || {}
         ).map(([asn, anomaly_list]) => {
             return (
                 <div key={asn}>
@@ -85,9 +72,9 @@ class AnomalySiteWidget extends Component {
 
     parameter_get_table() {
         let data = [
-            {parameter: 'input', value: this.props.query.site},
-            {parameter: 'year', value: this.props.query.year},
-            {parameter: 'probe_cc', value: this.props.query.country}
+            {parameter: 'input', value: this.props.match.params.site},
+            {parameter: 'year', value: this.props.match.params.year},
+            {parameter: 'probe_cc', value: this.props.match.params.country}
         ];
 
         return (
@@ -118,7 +105,7 @@ class AnomalySiteWidget extends Component {
 
 export default connect(
     state => ({
-        history: state.history || {}
+        chistory: state.history || {}
     }),
     dispatch => ({
         handle_load() {
@@ -130,20 +117,13 @@ export default connect(
             country_history_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(history_date),
-                this.props.query.year,
-                this.props.query.country
+                this.props.match.params.year,
+                this.props.match.params.country
             );
         },
 
         handle_click_row(e) {
-            dispatch(
-                make_anomaly_incident(
-                    new Date(`${e.data.measurement_start_time}Z`),
-                    this.props.query.country,
-                    this.props.query.site,
-                    e.data.measurement_id
-                )
-            );
+            this.props.history.push(`/incident/${e.data.measurement_id}`);
         }
     })
 )(AnomalySiteWidget);
