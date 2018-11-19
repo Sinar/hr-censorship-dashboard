@@ -6,6 +6,7 @@ import './index.css';
 import AppContainer from './App';
 import registerServiceWorker from './registerServiceWorker';
 import dashboardApp from './dashboard';
+import {HashRouter} from 'react-router-dom';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -14,7 +15,9 @@ import 'primeicons/primeicons.css';
 
 ReactDOM.render(
     <Provider store={createStore(dashboardApp)}>
-        <AppContainer />
+        <HashRouter>
+            <AppContainer />
+        </HashRouter>
     </Provider>,
     document.getElementById('root')
 );
