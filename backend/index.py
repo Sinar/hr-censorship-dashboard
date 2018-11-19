@@ -153,9 +153,11 @@ def history_year_get_country(hug_db, year, country):
             FROM        measurements
             WHERE       LOWER(probe_cc) = %s
                         AND (anomaly = TRUE OR confirmed = TRUE)
-                        AND YEAR(measurement_start_time) = %s
+                        AND (measurement_start_time BETWEEN %s AND %s)
             ORDER BY    measurement_start_time DESC
-            ''', (country.lower(), year))
+            ''', (country.lower(),
+                  datetime(int(year), 1, 1),
+                  datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)))
 
         for row in _cursor.fetchall():
             site_list[row['input']][row['probe_asn']].append(row)
@@ -207,37 +209,6 @@ def history_year_get_site(hug_db, country, url):
 
 
 @hug.local()
-@hug.get('/api/history/yearly/{year}/country/{country}')
-def history_yearly_get_country(hug_db, year, country):
-    site_list = defaultdict(lambda: defaultdict(list))
-    with hug_db.cursor() as _cursor:
-        _cursor.execute('''
-            SELECT      *
-            FROM        measurements
-            WHERE       LOWER(probe_cc) = %s
-                        AND (anomaly = TRUE OR confirmed = TRUE)
-                        AND YEAR(measurement_start_time) = %s
-            ORDER BY    measurement_start_time DESC
-            ''', (country.lower(), year))
-
-        for row in _cursor.fetchall():
-            site_list[row['input']][row['probe_asn']].append(row)
-
-        return {
-            'country':
-            country,
-            'sites': [{
-                'site_url':
-                site_url,
-                'as_list': [{
-                    'as_number': as_number,
-                    'measurements': measurements
-                } for as_number, measurements in as_list.items()]
-            } for site_url, as_list in site_list.items()]
-        }
-
-
-@hug.local()
 @hug.get('/api/summary/{year}')
 def summary_get(hug_db, year):
     country_list = defaultdict(dict)
@@ -250,10 +221,11 @@ def summary_get(hug_db, year):
             JOIN        sites s
             ON          (m.input = s.url
                          AND m.probe_cc = s.country_code)
-            WHERE       YEAR(measurement_start_time) = %s
+            WHERE       (measurement_start_time BETWEEN %s AND %s)
                         AND (anomaly = TRUE OR confirmed = TRUE)
             GROUP BY    m.probe_cc, s.category_code
-            ''', (year, ))
+            ''', (datetime(int(year), 1, 1),
+                  datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)))
 
         for row in _cursor.fetchall():
             country_list[row['country'].lower()][row['category']] = row[
@@ -271,3 +243,4 @@ def summary_get(hug_db, year):
                 } for category, count in category_list.items()]
             } for country, category_list in country_list.items()]
         }
+
