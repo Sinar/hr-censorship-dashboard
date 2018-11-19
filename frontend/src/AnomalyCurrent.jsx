@@ -3,20 +3,9 @@ import {Nav, NavItem, NavLink} from 'reactstrap';
 import {connect} from 'react-redux';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
-import {make_anomaly_site} from './AnomalySite';
 import Countries from 'country-list';
 
 import {asn_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
-
-export function make_anomaly_current(country = 'my') {
-    return {
-        type: 'GO_ANOMALY_CURRENT',
-        query: {
-            type: 'ANOMALY_CURRENT',
-            country: country
-        }
-    };
-}
 
 class AnomalyCurrentWidget extends Component {
     constructor(props) {
@@ -35,7 +24,7 @@ class AnomalyCurrentWidget extends Component {
         return (
             <NavItem key={country}>
                 <NavLink
-                    active={country === this.props.query.country}
+                    active={country === this.props.match.params.country}
                     onClick={e => this.handle_click(e, country)}
                     href="#"
                 >
@@ -47,18 +36,20 @@ class AnomalyCurrentWidget extends Component {
 
     category_get_sites(category) {
         return (
-            (this.props.site[this.props.query.country] || {})[
+            (this.props.site[this.props.match.params.country] || {})[
                 category.category_code
             ] || []
         ).reduce((current, site) => {
             let anomaly =
-                (this.props.current[this.props.query.country] || {})[
+                (this.props.current[this.props.match.params.country] || {})[
                     site.url
                 ] || {};
 
             if (Object.keys(anomaly).length > 0) {
                 current.push(
-                    (this.props.asn[this.props.query.country] || []).reduce(
+                    (
+                        this.props.asn[this.props.match.params.country] || []
+                    ).reduce(
                         (current, asn) => {
                             current[asn] = (anomaly[asn] || []).length;
                             return current;
@@ -93,16 +84,17 @@ class AnomalyCurrentWidget extends Component {
                             header="Site URL"
                             style={{width: '350px'}}
                         />
-                        {(this.props.asn[this.props.query.country] || []).map(
-                            asn => (
-                                <Column
-                                    key={asn}
-                                    field={asn}
-                                    header={asn}
-                                    style={{width: '100px'}}
-                                />
-                            )
-                        )}
+                        {(
+                            this.props.asn[this.props.match.params.country] ||
+                            []
+                        ).map(asn => (
+                            <Column
+                                key={asn}
+                                field={asn}
+                                header={asn}
+                                style={{width: '100px'}}
+                            />
+                        ))}
                     </DataTable>
                 </div>
             );
@@ -119,7 +111,7 @@ class AnomalyCurrentWidget extends Component {
             <div>
                 <h2>
                     Current Inaccessible Sites for{' '}
-                    {Countries().getName(this.props.query.country)}
+                    {Countries().getName(this.props.match.params.country)}
                 </h2>
                 <Nav tabs>
                     {this.props.country_list.map(country =>
@@ -177,16 +169,14 @@ export default connect(
                 country
             );
 
-            dispatch(make_anomaly_current(country));
+            this.props.history.push(`/current/${country}`);
         },
 
         handle_click_row(e) {
-            dispatch(
-                make_anomaly_site(
-                    new Date().getFullYear(),
-                    this.props.query.country,
-                    e.data.site
-                )
+            this.props.history.push(
+                `/summary/${new Date().getFullYear()}/${
+                    this.props.match.params.country
+                }/${e.data.site}`
             );
         },
 
@@ -201,21 +191,21 @@ export default connect(
             asn_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(asn_date),
-                this.props.query.country
+                this.props.match.params.country
             );
 
             this.props.delegate_loading_populate(site_date);
             site_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(site_date),
-                this.props.query.country
+                this.props.match.params.country
             );
 
             this.props.delegate_loading_populate(anomaly_date);
             anomaly_current_fetch(
                 dispatch,
                 () => this.props.delegate_loading_done(anomaly_date),
-                this.props.query.country
+                this.props.match.params.country
             );
         }
     })
