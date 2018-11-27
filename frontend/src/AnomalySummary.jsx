@@ -5,6 +5,7 @@ import {Column} from 'primereact/column';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 import {summary_fetch} from './fetcher.js';
 import Countries from 'country-list';
+import {Link} from 'react-router-dom';
 
 class AnomalySummaryWidget extends Component {
     constructor(props) {
@@ -13,15 +14,12 @@ class AnomalySummaryWidget extends Component {
         this.handle_load = props.handle_load.bind(this);
         this.handle_click = props.handle_click.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
+
+        this.country_get_template = this.country_get_template.bind(this);
     }
 
     componentDidMount() {
         this.handle_load();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.match.params.year !== prevProps.match.params.year)
-            this.handle_load();
     }
 
     link_get(country) {
@@ -74,6 +72,18 @@ class AnomalySummaryWidget extends Component {
         );
     }
 
+    country_get_template(data_row, column) {
+        return (
+            <Link
+                to={`/summary/${this.props.match.params.year}/${
+                    data_row.country
+                }`}
+            >
+                {data_row[column.field]}
+            </Link>
+        );
+    }
+
     render() {
         return (
             <div>
@@ -91,6 +101,7 @@ class AnomalySummaryWidget extends Component {
                         onRowClick={this.handle_click_row}
                     >
                         <Column
+                            body={this.country_get_template}
                             key="country"
                             field="country_name"
                             header="Country"
