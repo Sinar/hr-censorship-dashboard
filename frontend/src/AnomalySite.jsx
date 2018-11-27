@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {country_history_fetch} from './fetcher.js';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
+import {Link} from 'react-router-dom';
 
 class AnomalySiteWidget extends Component {
     constructor(props) {
@@ -10,10 +11,22 @@ class AnomalySiteWidget extends Component {
 
         this.handle_load = props.handle_load.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
+
+        this.measurement_get_template = this.measurement_get_template.bind(
+            this
+        );
     }
 
     componentDidMount() {
         this.handle_load();
+    }
+
+    measurement_get_template(data_row, column) {
+        return (
+            <Link to={`/incident/${data_row[column.field]}`}>
+                {data_row[column.field]}
+            </Link>
+        );
     }
 
     anomaly_get_list() {
@@ -30,6 +43,12 @@ class AnomalySiteWidget extends Component {
                         onRowClick={this.handle_click_row}
                     >
                         <Column
+                            body={this.measurement_get_template}
+                            key="measurement_id"
+                            field="measurement_id"
+                            header="measurement_id"
+                        />
+                        <Column
                             key="anomaly"
                             field="anomaly"
                             header="anomaly"
@@ -43,11 +62,6 @@ class AnomalySiteWidget extends Component {
                             key="failure"
                             field="failure"
                             header="failure"
-                        />
-                        <Column
-                            key="measurement_id"
-                            field="measurement_id"
-                            header="measurement_id"
                         />
                         <Column
                             key="measurement_start_time"
