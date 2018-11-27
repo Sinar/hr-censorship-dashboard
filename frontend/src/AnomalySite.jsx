@@ -34,8 +34,8 @@ class AnomalySiteWidget extends Component {
             <span
                 ref={ref => {
                     if (ref) {
-                        ref.parentElement.classList.add('text-white');
                         ref.parentElement.classList.add(
+                            'text-white',
                             data_row[column.field] !== 0
                                 ? 'bg-danger'
                                 : 'bg-success'
