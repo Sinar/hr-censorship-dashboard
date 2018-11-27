@@ -65,7 +65,7 @@ class AnomalyCountryWidget extends Component {
             ] || {}
         ).map(([category_code, count]) => ({
             category: category_code,
-            description: this.props.category[category_code]
+            description: (this.props.category[category_code] || {})
                 .category_description,
             count: count
         }));
@@ -81,12 +81,7 @@ class AnomalyCountryWidget extends Component {
                     field="description"
                     header="Category description"
                 />
-                <Column
-                    body={this.count_get_template}
-                    key="count"
-                    field="count"
-                    header="Anomaly count"
-                />
+                <Column key="count" field="count" header="Anomaly count" />
             </DataTable>
         );
     }
@@ -124,9 +119,17 @@ class AnomalyCountryWidget extends Component {
         return (
             <span
                 ref={ref => {
-                    if (ref && data_row[column.field] !== 0) {
-                        ref.parentElement.classList.add('text-white');
-                        ref.parentElement.classList.add('bg-danger');
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'text-white',
+                            'bg-danger'
+                        );
+
+                        data_row[column.field] !== 0 &&
+                            ref.parentElement.classList.add(
+                                'text-white',
+                                'bg-danger'
+                            );
                     }
                 }}
             >

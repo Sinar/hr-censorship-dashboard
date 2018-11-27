@@ -93,6 +93,7 @@ class AnomalyCurrentWidget extends Component {
                             []
                         ).map(asn => (
                             <Column
+                                body={this.count_get_template}
                                 key={asn}
                                 field={asn}
                                 header={asn}
@@ -116,6 +117,29 @@ class AnomalyCurrentWidget extends Component {
             >
                 {data_row[column.field]}
             </Link>
+        );
+    }
+
+    count_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'text-white',
+                            'bg-danger'
+                        );
+
+                        data_row[column.field] !== 0 &&
+                            ref.parentElement.classList.add(
+                                'text-white',
+                                'bg-danger'
+                            );
+                    }
+                }}
+            >
+                {data_row[column.field]}
+            </span>
         );
     }
 

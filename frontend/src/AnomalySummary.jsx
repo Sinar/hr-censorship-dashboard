@@ -88,9 +88,17 @@ class AnomalySummaryWidget extends Component {
         return (
             <span
                 ref={ref => {
-                    if (ref && data_row[column.field] !== 0) {
-                        ref.parentElement.classList.add('text-white');
-                        ref.parentElement.classList.add('bg-danger');
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'text-white',
+                            'bg-danger'
+                        );
+
+                        data_row[column.field] !== 0 &&
+                            ref.parentElement.classList.add(
+                                'text-white',
+                                'bg-danger'
+                            );
                     }
                 }}
             >

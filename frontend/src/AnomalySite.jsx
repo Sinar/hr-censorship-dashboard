@@ -34,6 +34,10 @@ class AnomalySiteWidget extends Component {
             <span
                 ref={ref => {
                     if (ref) {
+                        ref.parentElement.classList.remove(
+                            'bg-danger',
+                            'bg-success'
+                        );
                         ref.parentElement.classList.add(
                             'text-white',
                             data_row[column.field] !== 0
@@ -43,7 +47,7 @@ class AnomalySiteWidget extends Component {
                     }
                 }}
             >
-                {data_row[column.field] ? 'yes' : 'no'}
+                {data_row[column.field] ? 'Yes' : 'No'}
             </span>
         );
     }
@@ -63,6 +67,11 @@ class AnomalySiteWidget extends Component {
             <span
                 ref={ref => {
                     if (ref) {
+                        ref.parentElement.classList.remove(
+                            'bg-danger',
+                            'bg-warning',
+                            'bg-success'
+                        );
                         ref.parentElement.classList.add(
                             'text-white',
                             outcome('bg-danger', 'bg-warning', 'bg-success')
