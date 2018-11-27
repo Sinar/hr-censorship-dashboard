@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {asn_fetch, site_fetch, country_history_fetch} from './fetcher.js';
+import {
+    asn_fetch,
+    site_fetch,
+    country_history_fetch,
+    summary_fetch
+} from './fetcher.js';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 import {Button, ButtonGroup} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
@@ -294,12 +299,20 @@ export default connect(
         },
 
         handle_load() {
-            let [asn_date, site_date, history_date] = [
+            let [asn_date, site_date, history_date, summary_date] = [
+                new Date(),
                 new Date(),
                 new Date(),
                 new Date()
             ];
             this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(summary_date);
+            summary_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(summary_date),
+                this.props.match.params.year
+            );
 
             this.props.delegate_loading_populate(asn_date);
             asn_fetch(
