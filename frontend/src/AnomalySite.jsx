@@ -48,6 +48,33 @@ class AnomalySiteWidget extends Component {
         );
     }
 
+    anomaly_get_template(data_row, _column) {
+        let outcome = (confirmed, unconfirmed, safe) => {
+            if (data_row.anomaly === 0) {
+                return safe;
+            } else if (data_row.confirmed === 0) {
+                return unconfirmed;
+            } else {
+                return confirmed;
+            }
+        };
+
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.add(
+                            'text-white',
+                            outcome('bg-danger', 'bg-warning', 'bg-success')
+                        );
+                    }
+                }}
+            >
+                {outcome('Yes, confirmed', 'Yes, unconfirmed', 'No')}
+            </span>
+        );
+    }
+
     anomaly_get_list() {
         return Object.entries(
             ((this.props.chistory[this.props.match.params.year] || {})[
@@ -68,16 +95,10 @@ class AnomalySiteWidget extends Component {
                             header="measurement_id"
                         />
                         <Column
-                            body={this.status_get_template}
+                            body={this.anomaly_get_template}
                             key="anomaly"
                             field="anomaly"
                             header="anomaly"
-                        />
-                        <Column
-                            body={this.status_get_template}
-                            key="confirmed"
-                            field="confirmed"
-                            header="confirmed"
                         />
                         <Column
                             body={this.status_get_template}
