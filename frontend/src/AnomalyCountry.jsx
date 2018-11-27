@@ -6,6 +6,7 @@ import {Button, ButtonGroup} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import Countries from 'country-list';
+import {Link} from 'react-router-dom';
 
 class AnomalyCountryWidget extends Component {
     constructor(props) {
@@ -15,6 +16,8 @@ class AnomalyCountryWidget extends Component {
         this.handle_click_country = props.handle_click_country.bind(this);
         this.handle_click_year = props.handle_click_year.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
+
+        this.site_get_template = this.site_get_template.bind(this);
     }
 
     componentDidMount() {
@@ -107,6 +110,18 @@ class AnomalyCountryWidget extends Component {
         }, []);
     }
 
+    site_get_template(data_row, column) {
+        return (
+            <Link
+                to={`/summary/${this.props.match.params.year}/${
+                    this.props.match.params.country
+                }/${data_row.site}`}
+            >
+                {data_row[column.field]}
+            </Link>
+        );
+    }
+
     category_get_summary(category) {
         let sites = this.category_get_sites(category);
 
@@ -123,6 +138,7 @@ class AnomalyCountryWidget extends Component {
                         onRowClick={this.handle_click_row}
                     >
                         <Column
+                            body={this.site_get_template}
                             key="site"
                             field="site"
                             header="Site URL"
