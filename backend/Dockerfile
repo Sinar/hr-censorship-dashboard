@@ -1,6 +1,6 @@
 FROM python:3
 
-RUN pip install hug gunicorn PyMySQL &&\
+RUN pip install hug gunicorn PyMySQL cachetools &&\
     mkdir -p /opt/dashboard-api
 
 COPY index.py /opt/dashboard-api/index.py
