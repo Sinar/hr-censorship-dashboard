@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {country_history_fetch} from './fetcher.js';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
+import {Link} from 'react-router-dom';
 
 class AnomalySiteWidget extends Component {
     constructor(props) {
@@ -10,10 +11,77 @@ class AnomalySiteWidget extends Component {
 
         this.handle_load = props.handle_load.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
+
+        this.measurement_get_template = this.measurement_get_template.bind(
+            this
+        );
     }
 
     componentDidMount() {
         this.handle_load();
+    }
+
+    measurement_get_template(data_row, column) {
+        return (
+            <Link to={`/incident/${data_row[column.field]}`}>
+                {data_row[column.field]}
+            </Link>
+        );
+    }
+
+    status_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'bg-danger',
+                            'bg-success'
+                        );
+                        ref.parentElement.classList.add(
+                            'text-white',
+                            data_row[column.field] !== 0
+                                ? 'bg-danger'
+                                : 'bg-success'
+                        );
+                    }
+                }}
+            >
+                {data_row[column.field] ? 'Yes' : 'No'}
+            </span>
+        );
+    }
+
+    anomaly_get_template(data_row, _column) {
+        let outcome = (confirmed, unconfirmed, safe) => {
+            if (data_row.anomaly === 0) {
+                return safe;
+            } else if (data_row.confirmed === 0) {
+                return unconfirmed;
+            } else {
+                return confirmed;
+            }
+        };
+
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'bg-danger',
+                            'bg-warning',
+                            'bg-success'
+                        );
+                        ref.parentElement.classList.add(
+                            'text-white',
+                            outcome('bg-danger', 'bg-warning', 'bg-success')
+                        );
+                    }
+                }}
+            >
+                {outcome('Yes, confirmed', 'Yes, unconfirmed', 'No')}
+            </span>
+        );
     }
 
     anomaly_get_list() {
@@ -30,24 +98,22 @@ class AnomalySiteWidget extends Component {
                         onRowClick={this.handle_click_row}
                     >
                         <Column
+                            body={this.measurement_get_template}
+                            key="measurement_id"
+                            field="measurement_id"
+                            header="measurement_id"
+                        />
+                        <Column
+                            body={this.anomaly_get_template}
                             key="anomaly"
                             field="anomaly"
                             header="anomaly"
                         />
                         <Column
-                            key="confirmed"
-                            field="confirmed"
-                            header="confirmed"
-                        />
-                        <Column
+                            body={this.status_get_template}
                             key="failure"
                             field="failure"
                             header="failure"
-                        />
-                        <Column
-                            key="measurement_id"
-                            field="measurement_id"
-                            header="measurement_id"
                         />
                         <Column
                             key="measurement_start_time"

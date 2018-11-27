@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import Countries from 'country-list';
+import {Link} from 'react-router-dom';
 
 import {asn_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
 
@@ -14,6 +15,8 @@ class AnomalyCurrentWidget extends Component {
         this.handle_load = props.handle_load.bind(this);
         this.handle_click = props.handle_click.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
+
+        this.site_get_template = this.site_get_template.bind(this);
     }
 
     componentDidMount() {
@@ -79,6 +82,7 @@ class AnomalyCurrentWidget extends Component {
                         onRowClick={this.handle_click_row}
                     >
                         <Column
+                            body={this.site_get_template}
                             key="site"
                             field="site"
                             header="Site URL"
@@ -89,6 +93,7 @@ class AnomalyCurrentWidget extends Component {
                             []
                         ).map(asn => (
                             <Column
+                                body={this.count_get_template}
                                 key={asn}
                                 field={asn}
                                 header={asn}
@@ -101,6 +106,41 @@ class AnomalyCurrentWidget extends Component {
         }
 
         return result;
+    }
+
+    site_get_template(data_row, column) {
+        return (
+            <Link
+                to={`/summary/${new Date().getFullYear()}/${
+                    this.props.match.params.country
+                }/${data_row.site}`}
+            >
+                {data_row[column.field]}
+            </Link>
+        );
+    }
+
+    count_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'text-white',
+                            'bg-danger'
+                        );
+
+                        data_row[column.field] !== 0 &&
+                            ref.parentElement.classList.add(
+                                'text-white',
+                                'bg-danger'
+                            );
+                    }
+                }}
+            >
+                {data_row[column.field]}
+            </span>
+        );
     }
 
     render() {

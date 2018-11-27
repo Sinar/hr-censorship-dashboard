@@ -1,11 +1,17 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {asn_fetch, site_fetch, country_history_fetch} from './fetcher.js';
+import {
+    asn_fetch,
+    site_fetch,
+    country_history_fetch,
+    summary_fetch
+} from './fetcher.js';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 import {Button, ButtonGroup} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import Countries from 'country-list';
+import {Link} from 'react-router-dom';
 
 class AnomalyCountryWidget extends Component {
     constructor(props) {
@@ -15,6 +21,8 @@ class AnomalyCountryWidget extends Component {
         this.handle_click_country = props.handle_click_country.bind(this);
         this.handle_click_year = props.handle_click_year.bind(this);
         this.handle_click_row = props.handle_click_row.bind(this);
+
+        this.site_get_template = this.site_get_template.bind(this);
     }
 
     componentDidMount() {
@@ -57,7 +65,7 @@ class AnomalyCountryWidget extends Component {
             ] || {}
         ).map(([category_code, count]) => ({
             category: category_code,
-            description: this.props.category[category_code]
+            description: (this.props.category[category_code] || {})
                 .category_description,
             count: count
         }));
@@ -107,6 +115,41 @@ class AnomalyCountryWidget extends Component {
         }, []);
     }
 
+    count_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.remove(
+                            'text-white',
+                            'bg-danger'
+                        );
+
+                        data_row[column.field] !== 0 &&
+                            ref.parentElement.classList.add(
+                                'text-white',
+                                'bg-danger'
+                            );
+                    }
+                }}
+            >
+                {data_row[column.field]}
+            </span>
+        );
+    }
+
+    site_get_template(data_row, column) {
+        return (
+            <Link
+                to={`/summary/${this.props.match.params.year}/${
+                    this.props.match.params.country
+                }/${data_row.site}`}
+            >
+                {data_row[column.field]}
+            </Link>
+        );
+    }
+
     category_get_summary(category) {
         let sites = this.category_get_sites(category);
 
@@ -123,6 +166,7 @@ class AnomalyCountryWidget extends Component {
                         onRowClick={this.handle_click_row}
                     >
                         <Column
+                            body={this.site_get_template}
                             key="site"
                             field="site"
                             header="Site URL"
@@ -133,6 +177,7 @@ class AnomalyCountryWidget extends Component {
                             []
                         ).map(asn => (
                             <Column
+                                body={this.count_get_template}
                                 key={asn}
                                 field={asn}
                                 header={asn}
@@ -257,12 +302,20 @@ export default connect(
         },
 
         handle_load() {
-            let [asn_date, site_date, history_date] = [
+            let [asn_date, site_date, history_date, summary_date] = [
+                new Date(),
                 new Date(),
                 new Date(),
                 new Date()
             ];
             this.props.delegate_loading_reset();
+
+            this.props.delegate_loading_populate(summary_date);
+            summary_fetch(
+                dispatch,
+                () => this.props.delegate_loading_done(summary_date),
+                this.props.match.params.year
+            );
 
             this.props.delegate_loading_populate(asn_date);
             asn_fetch(
