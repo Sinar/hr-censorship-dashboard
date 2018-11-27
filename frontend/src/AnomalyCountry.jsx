@@ -76,7 +76,12 @@ class AnomalyCountryWidget extends Component {
                     field="description"
                     header="Category description"
                 />
-                <Column key="count" field="count" header="Anomaly count" />
+                <Column
+                    body={this.count_get_template}
+                    key="count"
+                    field="count"
+                    header="Anomaly count"
+                />
             </DataTable>
         );
     }
@@ -108,6 +113,21 @@ class AnomalyCountryWidget extends Component {
 
             return current;
         }, []);
+    }
+
+    count_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref && data_row[column.field] !== 0) {
+                        ref.parentElement.classList.add('text-white');
+                        ref.parentElement.classList.add('bg-danger');
+                    }
+                }}
+            >
+                {data_row[column.field]}
+            </span>
+        );
     }
 
     site_get_template(data_row, column) {
@@ -149,6 +169,7 @@ class AnomalyCountryWidget extends Component {
                             []
                         ).map(asn => (
                             <Column
+                                body={this.count_get_template}
                                 key={asn}
                                 field={asn}
                                 header={asn}

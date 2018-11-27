@@ -29,6 +29,25 @@ class AnomalySiteWidget extends Component {
         );
     }
 
+    status_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref) {
+                        ref.parentElement.classList.add('text-white');
+                        ref.parentElement.classList.add(
+                            data_row[column.field] !== 0
+                                ? 'bg-danger'
+                                : 'bg-success'
+                        );
+                    }
+                }}
+            >
+                {data_row[column.field] ? 'yes' : 'no'}
+            </span>
+        );
+    }
+
     anomaly_get_list() {
         return Object.entries(
             ((this.props.chistory[this.props.match.params.year] || {})[
@@ -49,16 +68,19 @@ class AnomalySiteWidget extends Component {
                             header="measurement_id"
                         />
                         <Column
+                            body={this.status_get_template}
                             key="anomaly"
                             field="anomaly"
                             header="anomaly"
                         />
                         <Column
+                            body={this.status_get_template}
                             key="confirmed"
                             field="confirmed"
                             header="confirmed"
                         />
                         <Column
+                            body={this.status_get_template}
                             key="failure"
                             field="failure"
                             header="failure"

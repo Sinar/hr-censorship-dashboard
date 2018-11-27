@@ -84,6 +84,21 @@ class AnomalySummaryWidget extends Component {
         );
     }
 
+    count_get_template(data_row, column) {
+        return (
+            <span
+                ref={ref => {
+                    if (ref && data_row[column.field] !== 0) {
+                        ref.parentElement.classList.add('text-white');
+                        ref.parentElement.classList.add('bg-danger');
+                    }
+                }}
+            >
+                {data_row[column.field]}
+            </span>
+        );
+    }
+
     render() {
         return (
             <div>
@@ -110,6 +125,7 @@ class AnomalySummaryWidget extends Component {
                         {Object.entries(this.props.category).map(
                             ([code, _]) => (
                                 <Column
+                                    body={this.count_get_template}
                                     key={code}
                                     field={code}
                                     header={code}
