@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 from datetime import datetime, timedelta
 
+import cachetools.func
 import hug
 import pymysql.cursors
 import pymysql
@@ -10,22 +11,25 @@ api = hug.API(__name__)
 api.http.add_middleware(hug.middleware.CORSMiddleware(api, max_age=10))
 
 
+def db_connect(db):
+    return pymysql.connect(**{key: value for key, value in db})
+
 @hug.directive()
 def db(**kwargs):
-    return pymysql.connect(
-        host=os.environ.get('DB_HOST', 'localhost'),
-        port=int(os.environ.get('DB_PORT', 3306)),
-        user=os.environ.get('DB_USER', 'root'),
-        password=os.environ.get('DB_PASS', 'abc123'),
-        db=os.environ.get('DB_NAME', 'censorship'),
-        charset='utf8mb4',
-        cursorclass=pymysql.cursors.DictCursor)
+    return (
+        ('host', os.environ.get('DB_HOST', 'localhost')),
+        ('port', int(os.environ.get('DB_PORT', 3306))),
+        ('user', os.environ.get('DB_USER', 'root')),
+        ('password', os.environ.get('DB_PASS', 'abc123')),
+        ('db', os.environ.get('DB_NAME', 'censorship')),
+        ('charset', 'utf8mb4'),
+        ('cursorclass', pymysql.cursors.DictCursor))
 
 
 @hug.local()
 @hug.get('/api/country', output=hug.output_format.json)
 def country_get_list(hug_db):
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
             SELECT  DISTINCT country_code
             FROM    sites
@@ -43,7 +47,7 @@ def country_get_list(hug_db):
 @hug.get('/api/anomaly/country/{country}', output=hug.output_format.json)
 def country_get_anomaly(hug_db, country):
     sites = defaultdict(lambda: defaultdict(list))
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             '''
             SELECT      m.*
@@ -84,7 +88,7 @@ def country_get_anomaly(hug_db, country):
 @hug.local()
 @hug.get('/api/category', output=hug.output_format.json)
 def category_get_list(hug_db):
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
             SELECT  DISTINCT category_code, category_description
             FROM    sites
@@ -96,7 +100,7 @@ def category_get_list(hug_db):
 @hug.local()
 @hug.get('/api/site/{country}', output=hug.output_format.json)
 def country_get_sites(hug_db, country):
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         site_list = {}
         _cursor.execute('''
             SELECT      s.*
@@ -129,7 +133,7 @@ def country_get_sites(hug_db, country):
 @hug.local()
 @hug.get('/api/asn/{country}', output=hug.output_format.json)
 def country_get_asn(hug_db, country):
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
             SELECT      DISTINCT probe_asn
             FROM        measurements
@@ -146,7 +150,7 @@ def country_get_asn(hug_db, country):
 @hug.get('/api/history/year/{year}/country/{country}')
 def history_year_get_country(hug_db, year, country):
     site_list = defaultdict(lambda: defaultdict(list))
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             '''
             SELECT      *
@@ -178,7 +182,7 @@ def history_year_get_country(hug_db, year, country):
 @hug.get('/api/history/duration/year/country/{country}/site/{url}')
 def history_year_get_site(hug_db, country, url):
     as_list = defaultdict(list)
-    with hug_db.cursor() as _cursor:
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             '''
             SELECT      *
@@ -241,7 +245,27 @@ def history_yearly_get_country(hug_db, year, country):
 @hug.get('/api/summary/{year}')
 def summary_get(hug_db, year):
     country_list = defaultdict(dict)
-    with hug_db.cursor() as _cursor:
+
+    for row in db_fetch_summary(hug_db, year):
+        country_list[row['country'].lower()][row['category']] = row[
+            'count']
+
+    return {
+        'year':
+        year,
+        'country_list': [{
+            'country':
+            country,
+            'category_list': [{
+                'category': category,
+                'count': count
+            } for category, count in category_list.items()]
+        } for country, category_list in country_list.items()]
+    }
+
+@cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '128')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
+def db_fetch_summary(hug_db, year):
+    with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
             SELECT      m.probe_cc AS country,
                         s.category_code AS category,
@@ -255,19 +279,4 @@ def summary_get(hug_db, year):
             GROUP BY    m.probe_cc, s.category_code
             ''', (year, ))
 
-        for row in _cursor.fetchall():
-            country_list[row['country'].lower()][row['category']] = row[
-                'count']
-
-        return {
-            'year':
-            year,
-            'country_list': [{
-                'country':
-                country,
-                'category_list': [{
-                    'category': category,
-                    'count': count
-                } for category, count in category_list.items()]
-            } for country, category_list in country_list.items()]
-        }
+        return _cursor.fetchall()
