@@ -127,13 +127,13 @@ class AnomalyCurrentWidget extends Component {
                     if (ref) {
                         ref.parentElement.classList.remove(
                             'text-white',
-                            'bg-danger'
+                            'bg-info'
                         );
 
                         data_row[column.field] !== 0 &&
                             ref.parentElement.classList.add(
                                 'text-white',
-                                'bg-danger'
+                                'bg-info'
                             );
                     }
                 }}
@@ -181,33 +181,34 @@ export default connect(
     }),
     dispatch => ({
         handle_click(e, country) {
-            let [anomaly_date, asn_date, site_date] = [
-                new Date(),
-                new Date(),
-                new Date()
-            ];
             e.preventDefault();
 
-            this.props.delegate_loading_populate(asn_date);
-            asn_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(asn_date),
-                country
-            );
+            if (!this.props.asn[country]) {
+                asn_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    country
+                );
+            }
 
-            this.props.delegate_loading_populate(site_date);
-            site_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(site_date),
-                country
-            );
+            if (!this.props.site[country]) {
+                site_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    country
+                );
+            }
 
-            this.props.delegate_loading_populate(anomaly_date);
-            anomaly_current_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(anomaly_date),
-                country
-            );
+            if (!this.props.current[country]) {
+                anomaly_current_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    country
+                );
+            }
 
             this.props.history.push(`/current/${country}`);
         },
@@ -221,32 +222,32 @@ export default connect(
         },
 
         handle_load() {
-            let [anomaly_date, asn_date, site_date] = [
-                new Date(),
-                new Date(),
-                new Date()
-            ];
+            if (!this.props.asn[this.props.match.params.country]) {
+                asn_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.country
+                );
+            }
 
-            this.props.delegate_loading_populate(asn_date);
-            asn_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(asn_date),
-                this.props.match.params.country
-            );
+            if (!this.props.site[this.props.match.params.country]) {
+                site_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.country
+                );
+            }
 
-            this.props.delegate_loading_populate(site_date);
-            site_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(site_date),
-                this.props.match.params.country
-            );
-
-            this.props.delegate_loading_populate(anomaly_date);
-            anomaly_current_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(anomaly_date),
-                this.props.match.params.country
-            );
+            if (!this.props.current[this.props.match.params.country]) {
+                anomaly_current_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.country
+                );
+            }
         }
     })
 )(AnomalyCurrentWidget);

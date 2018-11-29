@@ -30,26 +30,7 @@ class AnomalySiteWidget extends Component {
     }
 
     status_get_template(data_row, column) {
-        return (
-            <span
-                ref={ref => {
-                    if (ref) {
-                        ref.parentElement.classList.remove(
-                            'bg-danger',
-                            'bg-success'
-                        );
-                        ref.parentElement.classList.add(
-                            'text-white',
-                            data_row[column.field] !== 0
-                                ? 'bg-danger'
-                                : 'bg-success'
-                        );
-                    }
-                }}
-            >
-                {data_row[column.field] ? 'Yes' : 'No'}
-            </span>
-        );
+        return <span>{data_row[column.field] ? 'Yes' : 'No'}</span>;
     }
 
     anomaly_get_template(data_row, _column) {
@@ -79,7 +60,7 @@ class AnomalySiteWidget extends Component {
                     }
                 }}
             >
-                {outcome('Yes, confirmed', 'Yes, unconfirmed', 'No')}
+                {outcome('Yes (confirmed)', 'Yes (unconfirmed)', 'No')}
             </span>
         );
     }
@@ -101,34 +82,34 @@ class AnomalySiteWidget extends Component {
                             body={this.measurement_get_template}
                             key="measurement_id"
                             field="measurement_id"
-                            header="measurement_id"
+                            header="Measurement ID"
                         />
                         <Column
                             body={this.anomaly_get_template}
                             key="anomaly"
                             field="anomaly"
-                            header="anomaly"
+                            header="Is anomaly"
+                        />
+                        <Column
+                            key="measurement_start_time"
+                            field="measurement_start_time"
+                            header="Measurement Time"
+                        />
+                        <Column
+                            key="measurement_url"
+                            field="measurement_url"
+                            header="Measurement URL"
+                        />
+                        <Column
+                            key="test_name"
+                            field="test_name"
+                            header="Test name"
                         />
                         <Column
                             body={this.status_get_template}
                             key="failure"
                             field="failure"
-                            header="failure"
-                        />
-                        <Column
-                            key="measurement_start_time"
-                            field="measurement_start_time"
-                            header="measurement_start_time"
-                        />
-                        <Column
-                            key="measurement_url"
-                            field="measurement_url"
-                            header="measurement_url"
-                        />
-                        <Column
-                            key="test_name"
-                            field="test_name"
-                            header="test_name"
+                            header="Test error"
                         />
                     </DataTable>
                 </div>
@@ -175,17 +156,21 @@ export default connect(
     }),
     dispatch => ({
         handle_load() {
-            let history_date = new Date();
-
             this.props.delegate_loading_reset();
 
-            this.props.delegate_loading_populate(history_date);
-            country_history_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(history_date),
-                this.props.match.params.year,
-                this.props.match.params.country
-            );
+            if (
+                !(this.props.chistory[this.props.match.params.year] || {})[
+                    this.props.match.params.country
+                ]
+            ) {
+                country_history_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.year,
+                    this.props.match.params.country
+                );
+            }
         },
 
         handle_click_row(e) {
