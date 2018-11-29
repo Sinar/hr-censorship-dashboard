@@ -30,6 +30,10 @@ export default function dashboardApp(state = {}, action) {
             result = populate_loading(state, action);
             break;
 
+        case 'POPULATE_RETRY':
+            result = populate_retry(state, action);
+            break;
+
         case 'POPULATE_SITE':
             result = populate_site(state, action);
             break;
@@ -48,6 +52,10 @@ export default function dashboardApp(state = {}, action) {
 
         case 'LOADING_RESET':
             result = loading_reset(state, action);
+            break;
+
+        case 'RETRY_DONE':
+            result = retry_done(state, action);
             break;
 
         default:
@@ -105,6 +113,24 @@ function populate_loading(state, action) {
     });
 }
 
+function populate_retry(state, action) {
+    return Object.assign({}, state, {
+        retry: (state.retry || []).reduce(
+            (current, incoming) => {
+                current.push(incoming);
+                return current;
+            },
+            [
+                {
+                    date: action.date,
+                    callback: action.callback,
+                    message: action.message
+                }
+            ]
+        )
+    });
+}
+
 function populate_site(state, action) {
     return Object.assign({}, state, {
         site: Object.assign({}, state.site || {}, action.data)
@@ -137,6 +163,19 @@ function loading_done(state, action) {
 
 function loading_reset(state, _action) {
     return Object.assign({}, state, {
-        loading: []
+        loading: [],
+        retry: []
+    });
+}
+
+function retry_done(state, action) {
+    return Object.assign({}, state, {
+        retry: (state.retry || []).reduce((current, incoming) => {
+            if (incoming.date !== action.date) {
+                current.push(incoming);
+            }
+
+            return current;
+        }, [])
     });
 }
