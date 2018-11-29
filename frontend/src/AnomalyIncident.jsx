@@ -5,6 +5,7 @@ import {Column} from 'primereact/column';
 import ReactJson from 'react-json-view';
 import Countries from 'country-list';
 import {ListGroup, ListGroupItem} from 'reactstrap';
+import {make_populate_retry} from './fetcher';
 
 function make_populate_incident(data) {
     return {
@@ -25,6 +26,8 @@ class AnomalyIncidentWidget extends Component {
         super(props);
 
         this.handle_load = props.handle_load.bind(this);
+        this.handle_load_measurement = props.handle_load_measurement.bind(this);
+        this.handle_load_wikidata = props.handle_load_wikidata.bind(this);
     }
 
     componentDidMount() {
@@ -178,31 +181,66 @@ export default connect(
     }),
     dispatch => ({
         handle_load() {
-            let [measurement_date, wikidata_date] = [new Date(), new Date()];
-
             this.props.delegate_loading_reset();
+            this.handle_load_measurement();
+        },
 
-            this.props.delegate_loading_populate(measurement_date);
-            fetch(
-                `https://api.ooni.io/api/v1/measurement/${
-                    this.props.match.params.measurement_id
-                }`
-            )
-                .then(response => response.json())
-                .then(data => {
-                    dispatch(
-                        make_populate_incident({
-                            [this.props.match.params.measurement_id]: data
-                        })
+        handle_load_measurement() {
+            let timestamp = new Date();
+
+            if (!this.props.incident[this.props.match.params.measurement_id]) {
+                this.props.delegate_loading_populate(timestamp);
+                fetch(
+                    `https://api.ooni.io/api/v1/measurement/${
+                        this.props.match.params.measurement_id
+                    }`
+                )
+                    .then(response => response.json())
+                    .then(
+                        data => {
+                            dispatch(
+                                make_populate_incident({
+                                    [this.props.match.params
+                                        .measurement_id]: data
+                                })
+                            );
+                            this.props.delegate_loading_done(timestamp);
+
+                            this.handle_load_wikidata();
+                        },
+                        () => {
+                            dispatch(
+                                make_populate_retry(
+                                    timestamp,
+                                    this.handle_load_measurement,
+                                    'Measurement fetching failed.'
+                                )
+                            );
+                            this.props.delegate_loading_done(timestamp);
+                        }
                     );
-                    this.props.delegate_loading_done(measurement_date);
+            }
+        },
 
-                    this.props.delegate_loading_populate(wikidata_date);
-                    fetch(
-                        `https://query.wikidata.org/sparql?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%0A%0ASELECT%20%3Fevent%20%3FeventLabel%20%3FcountryCode%20%3Fdate%20WHERE%20%7B%0A%20%20%3Fevent%20(wdt%3AP31%2Fwdt%3AP279*)%20wd%3AQ1190554.%0A%20%20%7B%20%3Fevent%20wdt%3AP585%20%3Fdate.%20%7D%20UNION%20%7B%20%3Fevent%20wdt%3AP580%20%3Fdate.%20%7D%0A%20%20%3Fevent%20rdfs%3Alabel%20%3FeventLabel.%0A%20%20%3Fevent%20wdt%3AP17%20%3Fcountry.%0A%20%20%3Fcountry%20wdt%3AP297%20%3FcountryCode.%0A%20%20FILTER(%3Fdate%20%3D%20%22${this.incident_get_date()}%22%5E%5Exsd%3AdateTime)%0A%20%20FILTER(%3FcountryCode%20%3D%20%22${this.incident_get_country().toUpperCase()}%22)%0A%7D%0ALIMIT%2010`
-                    )
-                        .then(response => response.json())
-                        .then(data => {
+        handle_load_wikidata() {
+            let timestamp = new Date();
+            if (
+                !(this.props.wikidata[this.incident_get_country()] || {})[
+                    this.incident_get_date()
+                ]
+            ) {
+                this.props.delegate_loading_populate(timestamp);
+                fetch(
+                    `https://query.wikidata.org/sparql?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%0A%0ASELECT%20%3Fevent%20%3FeventLabel%20%3FcountryCode%20%3Fdate%20WHERE%20%7B%0A%20%20%3Fevent%20(wdt%3AP31%2Fwdt%3AP279*)%20wd%3AQ1190554.%0A%20%20%7B%20%3Fevent%20wdt%3AP585%20%3Fdate.%20%7D%20UNION%20%7B%20%3Fevent%20wdt%3AP580%20%3Fdate.%20%7D%0A%20%20%3Fevent%20rdfs%3Alabel%20%3FeventLabel.%0A%20%20%3Fevent%20wdt%3AP17%20%3Fcountry.%0A%20%20%3Fcountry%20wdt%3AP297%20%3FcountryCode.%0A%20%20FILTER(%3Fdate%20%3D%20%22${this.incident_get_date()}%22%5E%5Exsd%3AdateTime)%0A%20%20FILTER(%3FcountryCode%20%3D%20%22${this.incident_get_country().toUpperCase()}%22)%0A%7D%0ALIMIT%2010`,
+                    {
+                        headers: {
+                            Accept: 'application/sparql-results+json'
+                        }
+                    }
+                )
+                    .then(response => response.json())
+                    .then(
+                        data => {
                             dispatch(
                                 make_populate_wikidata({
                                     [this.incident_get_country()]: {
@@ -215,9 +253,21 @@ export default connect(
                                     }
                                 })
                             );
-                            this.props.delegate_loading_done(wikidata_date);
-                        });
-                });
+                            this.props.delegate_loading_done(timestamp);
+                        },
+                        () => {
+                            dispatch(
+                                make_populate_retry(
+                                    timestamp,
+                                    this.handle_load_wikidata,
+                                    'Wikidata fetching failed.'
+                                )
+                            );
+
+                            this.props.delegate_loading_done(timestamp);
+                        }
+                    );
+            }
         }
     })
 )(AnomalyIncidentWidget);

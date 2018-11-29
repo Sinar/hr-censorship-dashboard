@@ -122,13 +122,13 @@ class AnomalyCountryWidget extends Component {
                     if (ref) {
                         ref.parentElement.classList.remove(
                             'text-white',
-                            'bg-danger'
+                            'bg-info'
                         );
 
                         data_row[column.field] !== 0 &&
                             ref.parentElement.classList.add(
                                 'text-white',
-                                'bg-danger'
+                                'bg-info'
                             );
                     }
                 }}
@@ -237,37 +237,41 @@ export default connect(
     }),
     dispatch => ({
         handle_click_country(e, country) {
-            let [asn_date, site_date, history_date] = [
-                new Date(),
-                new Date(),
-                new Date()
-            ];
-
             e.preventDefault();
 
             this.props.delegate_loading_reset();
 
-            this.props.delegate_loading_populate(asn_date);
-            asn_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(asn_date),
-                country
-            );
+            if (!this.props.asn[country]) {
+                asn_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    country
+                );
+            }
 
-            this.props.delegate_loading_populate(site_date);
-            site_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(site_date),
-                country
-            );
+            if (!this.props.site[country]) {
+                site_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    country
+                );
+            }
 
-            this.props.delegate_loading_populate(site_date);
-            country_history_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(history_date),
-                this.props.match.params.year,
-                country
-            );
+            if (
+                !(this.props.chistory[this.props.match.params.year] || {})[
+                    country
+                ]
+            ) {
+                country_history_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.year,
+                    country
+                );
+            }
 
             this.props.history.push(
                 `/summary/${this.props.match.params.year}/${country}`
@@ -283,18 +287,23 @@ export default connect(
         },
 
         handle_click_year(e, year) {
-            let history_date = new Date();
             e.preventDefault();
 
             this.props.delegate_loading_reset();
 
-            this.props.delegate_loading_populate(history_date);
-            country_history_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(history_date),
-                year,
-                this.props.match.params.country
-            );
+            if (
+                !(this.props.chistory[year] || {})[
+                    this.props.match.params.country
+                ]
+            ) {
+                country_history_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    year,
+                    this.props.match.params.country
+                );
+            }
 
             this.props.history.push(
                 `/summary/${year}/${this.props.match.params.country}`
@@ -302,42 +311,48 @@ export default connect(
         },
 
         handle_load() {
-            let [asn_date, site_date, history_date, summary_date] = [
-                new Date(),
-                new Date(),
-                new Date(),
-                new Date()
-            ];
             this.props.delegate_loading_reset();
 
-            this.props.delegate_loading_populate(summary_date);
-            summary_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(summary_date),
-                this.props.match.params.year
-            );
+            if (!this.props.summary[this.props.match.params.year]) {
+                summary_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.year
+                );
+            }
 
-            this.props.delegate_loading_populate(asn_date);
-            asn_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(asn_date),
-                this.props.match.params.country
-            );
+            if (!this.props.asn[this.props.match.params.country]) {
+                asn_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.country
+                );
+            }
 
-            this.props.delegate_loading_populate(site_date);
-            site_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(site_date),
-                this.props.match.params.country
-            );
+            if (!this.props.site[this.props.match.params.country]) {
+                site_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.country
+                );
+            }
 
-            this.props.delegate_loading_populate(history_date);
-            country_history_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(history_date),
-                this.props.match.params.year,
-                this.props.match.params.country
-            );
+            if (
+                !(this.props.chistory[this.props.match.params.year] || {})[
+                    this.props.match.params.country
+                ]
+            ) {
+                country_history_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.year,
+                    this.props.match.params.country
+                );
+            }
         }
     })
 )(AnomalyCountryWidget);

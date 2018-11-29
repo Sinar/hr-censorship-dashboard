@@ -91,13 +91,13 @@ class AnomalySummaryWidget extends Component {
                     if (ref) {
                         ref.parentElement.classList.remove(
                             'text-white',
-                            'bg-danger'
+                            'bg-info'
                         );
 
                         data_row[column.field] !== 0 &&
                             ref.parentElement.classList.add(
                                 'text-white',
-                                'bg-danger'
+                                'bg-info'
                             );
                     }
                 }}
@@ -156,15 +156,16 @@ export default connect(
     }),
     dispatch => ({
         handle_click(e, year) {
-            let summary_date = new Date();
             e.preventDefault();
 
-            this.props.delegate_loading_populate(summary_date);
-            summary_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(summary_date),
-                year
-            );
+            if (!this.props.summary[year]) {
+                summary_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    year
+                );
+            }
 
             this.props.history.push(`/summary/${year}`);
         },
@@ -176,16 +177,16 @@ export default connect(
         },
 
         handle_load() {
-            let summary_date = new Date();
-
             this.props.delegate_loading_reset();
 
-            this.props.delegate_loading_populate(summary_date);
-            summary_fetch(
-                dispatch,
-                () => this.props.delegate_loading_done(summary_date),
-                this.props.match.params.year
-            );
+            if (!this.props.summary[this.props.match.params.year]) {
+                summary_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
+                    this.props.match.params.year
+                );
+            }
         }
     })
 )(AnomalySummaryWidget);
