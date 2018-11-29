@@ -1,14 +1,22 @@
 import React, {Component} from 'react';
 import './App.css';
 import {Container} from 'reactstrap';
-import {Alert, Navbar, NavbarBrand, Nav, NavItem, NavLink} from 'reactstrap';
+import {
+    Alert,
+    Button,
+    Navbar,
+    NavbarBrand,
+    Nav,
+    NavItem,
+    NavLink
+} from 'reactstrap';
 import {connect} from 'react-redux';
 import AnomalyCurrentContainer from './AnomalyCurrent';
 import AnomalySummaryContainer from './AnomalySummary';
 import AnomalyCountryContainer from './AnomalyCountry';
 import AnomalySiteContainer from './AnomalySite';
 import AnomalyIncidentContainer from './AnomalyIncident';
-import {category_fetch, country_fetch} from './fetcher';
+import {make_retry_done, category_fetch, country_fetch} from './fetcher';
 import {Route, Switch} from 'react-router-dom';
 import {withRouter} from 'react-router';
 
@@ -41,6 +49,7 @@ class AppWidget extends Component {
         this.handle_click_anomaly_summary = props.handle_click_anomaly_summary.bind(
             this
         );
+        this.handle_click_retry = props.handle_click_retry.bind(this);
 
         this.handle_loading_populate = props.handle_loading_populate.bind(this);
         this.handle_loading_done = props.handle_loading_done.bind(this);
@@ -74,7 +83,6 @@ class AppWidget extends Component {
                             }
                             delegate_loading_done={this.handle_loading_done}
                             delegate_loading_reset={this.handle_loading_reset}
-                            query={this.props.query}
                         />
                     )}
                 />
@@ -88,7 +96,6 @@ class AppWidget extends Component {
                             }
                             delegate_loading_done={this.handle_loading_done}
                             delegate_loading_reset={this.handle_loading_reset}
-                            query={this.props.query}
                         />
                     )}
                 />
@@ -102,7 +109,6 @@ class AppWidget extends Component {
                             }
                             delegate_loading_done={this.handle_loading_done}
                             delegate_loading_reset={this.handle_loading_reset}
-                            query={this.props.query}
                         />
                     )}
                 />
@@ -116,7 +122,6 @@ class AppWidget extends Component {
                             }
                             delegate_loading_done={this.handle_loading_done}
                             delegate_loading_reset={this.handle_loading_reset}
-                            query={this.props.query}
                         />
                     )}
                 />
@@ -130,7 +135,6 @@ class AppWidget extends Component {
                             }
                             delegate_loading_done={this.handle_loading_done}
                             delegate_loading_reset={this.handle_loading_reset}
-                            query={this.props.query}
                         />
                     )}
                 />
@@ -139,11 +143,32 @@ class AppWidget extends Component {
     }
 
     loading_get_alert() {
-        if (this.props.loading.length > 0) {
-            return (
-                <Alert color="info">Page is fetching data, please wait.</Alert>
-            );
-        }
+        return (
+            <div>
+                {this.props.loading.length > 0 && (
+                    <Alert color="info" key="loading">
+                        Page is fetching data, please wait.
+                    </Alert>
+                )}
+                {this.props.retry.map((item, key) => (
+                    <Alert color="danger" key={`error${key}`}>
+                        {item.message}{' '}
+                        <Button
+                            onClick={e =>
+                                this.handle_click_retry(
+                                    e,
+                                    item.date,
+                                    item.callback
+                                )
+                            }
+                            bsstyle="primary"
+                        >
+                            Please try again
+                        </Button>
+                    </Alert>
+                ))}
+            </div>
+        );
     }
 
     render() {
@@ -173,8 +198,7 @@ export default withRouter(
     connect(
         state => ({
             loading: state.loading || [],
-            query: state.query || {},
-            category: state.category || []
+            retry: state.retry || []
         }),
         dispatch => ({
             handle_click_anomaly_current(e) {
@@ -189,25 +213,30 @@ export default withRouter(
                 this.props.history.push(`/summary/${new Date().getFullYear()}`);
             },
 
+            handle_click_retry(e, timestamp, callback) {
+                e.preventDefault();
+                dispatch(make_retry_done(timestamp));
+                callback();
+            },
+
             handle_load() {
-                let [category_date, country_date] = [new Date(), new Date()];
+                category_fetch(
+                    dispatch,
+                    this.handle_loading_populate,
+                    this.handle_loading_done
+                );
 
-                this.handle_loading_populate(category_date);
-                this.handle_loading_populate(country_date);
+                country_fetch(
+                    dispatch,
+                    this.handle_loading_populate,
+                    this.handle_loading_done
+                );
 
-                category_fetch(dispatch, () => {
-                    this.handle_loading_done(category_date);
-
-                    country_fetch(dispatch, () => {
-                        this.handle_loading_done(country_date);
-
-                        if (this.props.location.pathname === '/') {
-                            this.props.history.push(
-                                `/summary/${new Date().getFullYear()}`
-                            );
-                        }
-                    });
-                });
+                if (this.props.location.pathname === '/') {
+                    this.props.history.push(
+                        `/summary/${new Date().getFullYear()}`
+                    );
+                }
             },
 
             handle_loading_populate(date) {
