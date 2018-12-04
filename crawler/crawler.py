@@ -77,7 +77,7 @@ with conn:
         with conn.cursor() as _cur:
             _cur.execute(
                 '''
-                INSERT INTO summary_view(year, country, category, count)
+                REPLACE INTO summary_view(year, country, category, count)
                     SELECT      YEAR(measurement_start_time) AS year,
                                 m.probe_cc AS country,
                                 s.category_code AS category,
