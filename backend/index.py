@@ -157,9 +157,10 @@ def history_year_get_country(hug_db, year, country):
             FROM        measurements
             WHERE       LOWER(probe_cc) = %s
                         AND (anomaly = TRUE OR confirmed = TRUE)
-                        AND YEAR(measurement_start_time) = %s
+                        AND (measurement_start_time BETWEEN %s AND %s)
             ORDER BY    measurement_start_time DESC
-            ''', (country.lower(), year))
+            ''', (country.lower(), datetime(int(year), 1, 1),
+                  datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)))
 
         for row in _cursor.fetchall():
             site_list[row['input']][row['probe_asn']].append(row)
@@ -215,14 +216,16 @@ def history_year_get_site(hug_db, country, url):
 def history_yearly_get_country(hug_db, year, country):
     site_list = defaultdict(lambda: defaultdict(list))
     with hug_db.cursor() as _cursor:
-        _cursor.execute('''
+        _cursor.execute(
+            '''
             SELECT      *
             FROM        measurements
             WHERE       LOWER(probe_cc) = %s
                         AND (anomaly = TRUE OR confirmed = TRUE)
-                        AND YEAR(measurement_start_time) = %s
+                        AND (measurement_start_time BETWEEN %s AND %s) 
             ORDER BY    measurement_start_time DESC
-            ''', (country.lower(), year))
+            ''', (country.lower(), datetime(int(year), 1, 1),
+                  datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)))
 
         for row in _cursor.fetchall():
             site_list[row['input']][row['probe_asn']].append(row)
@@ -267,16 +270,9 @@ def summary_get(hug_db, year):
 def db_fetch_summary(hug_db, year):
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
-            SELECT      m.probe_cc AS country,
-                        s.category_code AS category,
-                        COUNT(DISTINCT m.input) AS count
-            FROM        measurements m
-            JOIN        sites s
-            ON          (m.input = s.url
-                         AND m.probe_cc = s.country_code)
-            WHERE       YEAR(measurement_start_time) = %s
-                        AND (anomaly = TRUE OR confirmed = TRUE)
-            GROUP BY    m.probe_cc, s.category_code
+            SELECT      country, category, count
+            FROM        summary_view
+            WHERE       year = %s;
             ''', (year, ))
 
         return _cursor.fetchall()
