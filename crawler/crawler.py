@@ -92,7 +92,7 @@ with conn:
                     ON          (m.input = s.url
                                     AND m.probe_cc = s.country_code)
                     WHERE       YEAR(measurement_start_time) = YEAR(NOW())
-                                AND m.probe_cc = 'MY'
+                                AND m.probe_cc = %s
                                 AND (anomaly = TRUE OR confirmed = TRUE)
                     GROUP BY    YEAR(measurement_start_time), m.probe_cc, s.category_code;
                 ''', (os.environ.get('COUNTRY_CODE', 'MY'), ))
