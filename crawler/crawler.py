@@ -55,6 +55,8 @@ with conn:
 
             conn.begin()
             with conn.cursor() as _insert_cursor:
+                logging.info('%s: Updating measurements for %s',
+                             os.environ.get('COUNTRY_CODE', 'MY'), row['url'])
                 for result in response.json().get('results', []):
                     _insert_cursor.execute(
                         '''
@@ -75,6 +77,9 @@ with conn:
         # write summary
         conn.begin()
         with conn.cursor() as _cur:
+            logging.info(
+                '%s: Updating summary before ending this crawling session',
+                os.environ.get('COUNTRY_CODE', 'MY'))
             _cur.execute(
                 '''
                 REPLACE INTO summary_view(year, country, category, count)
@@ -87,7 +92,7 @@ with conn:
                     ON          (m.input = s.url
                                     AND m.probe_cc = s.country_code)
                     WHERE       YEAR(measurement_start_time) = YEAR(NOW())
-                                AND m.probe_cc = %s
+                                AND m.probe_cc = 'MY'
                                 AND (anomaly = TRUE OR confirmed = TRUE)
                     GROUP BY    YEAR(measurement_start_time), m.probe_cc, s.category_code;
                 ''', (os.environ.get('COUNTRY_CODE', 'MY'), ))
