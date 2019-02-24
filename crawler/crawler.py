@@ -58,17 +58,21 @@ with conn:
                 logging.info('%s: Updating measurements for %s',
                              os.environ.get('COUNTRY_CODE', 'MY'), row['url'])
                 for result in response.json().get('results', []):
-                    _insert_cursor.execute(
-                        '''
-                        REPLACE
-                        INTO     measurements({})
-                        VALUES   ({})
-                        '''.format(', '.join(FIELDS), ', '.join(
-                            '%s' for _ in range(len(FIELDS)))),
-                        tuple(
-                            dateutil.parser.parse(result[field]) if field ==
-                            'measurement_start_time' else result[field]
-                            for field in FIELDS))
+                    measurement_start_time = dateutil.parser.parse(
+                        result['measurement_start_time'])
+
+                    if measurement_start_time.year > 2018:
+                        _insert_cursor.execute(
+                            '''
+                            REPLACE
+                            INTO     measurements({})
+                            VALUES   ({})
+                            '''.format(
+                                ', '.join(FIELDS),
+                                ', '.join('%s' for _ in range(len(FIELDS)))),
+                            tuple(measurement_start_time if field ==
+                                  'measurement_start_time' else result[field]
+                                  for field in FIELDS))
 
             conn.commit()
 
