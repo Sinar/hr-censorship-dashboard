@@ -112,6 +112,7 @@ class AnomalySummaryWidget extends Component {
             <div>
                 <h2>Anomaly summary for year {this.props.match.params.year}</h2>
                 <Nav tabs>
+                    {this.navbar_get_year(2019)}
                     {this.navbar_get_year(2018)}
                     {this.navbar_get_year(2017)}
                 </Nav>
