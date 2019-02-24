@@ -6,8 +6,15 @@ import {
     country_history_fetch,
     summary_fetch
 } from './fetcher.js';
-import {Nav, NavItem, NavLink} from 'reactstrap';
-import {Button, ButtonGroup} from 'reactstrap';
+import {
+    Nav,
+    NavItem,
+    NavLink,
+    Button,
+    ButtonGroup,
+    Breadcrumb,
+    BreadcrumbItem
+} from 'reactstrap';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import Countries from 'country-list';
@@ -138,6 +145,27 @@ class AnomalyCountryWidget extends Component {
         );
     }
 
+    page_get_breadcrumbs() {
+        return (
+            <div>
+                <br />
+                <Breadcrumb>
+                    <BreadcrumbItem>
+                        <Link to="/">Home</Link>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <Link to={`/summary/${this.props.match.params.year}`}>
+                            {this.props.match.params.year}
+                        </Link>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem active>
+                        {Countries().getName(this.props.match.params.country)}
+                    </BreadcrumbItem>
+                </Breadcrumb>
+            </div>
+        );
+    }
+
     site_get_template(data_row, column) {
         return (
             <Link
@@ -195,6 +223,7 @@ class AnomalyCountryWidget extends Component {
     render() {
         return (
             <div>
+                {this.page_get_breadcrumbs()}
                 <h2>
                     Anomaly summary for{' '}
                     {Countries().getName(this.props.match.params.country)} in
@@ -210,6 +239,7 @@ class AnomalyCountryWidget extends Component {
                 <br />
 
                 <ButtonGroup>
+                    {this.year_get_button(2019)}
                     {this.year_get_button(2018)}
                     {this.year_get_button(2017)}
                 </ButtonGroup>

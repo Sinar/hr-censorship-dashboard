@@ -6,6 +6,8 @@ import ReactJson from 'react-json-view';
 import Countries from 'country-list';
 import {ListGroup, ListGroupItem} from 'reactstrap';
 import {make_populate_retry} from './fetcher';
+import {Breadcrumb, BreadcrumbItem} from 'reactstrap';
+import {Link} from 'react-router-dom';
 
 function make_populate_incident(data) {
     return {
@@ -34,8 +36,8 @@ class AnomalyIncidentWidget extends Component {
         this.handle_load();
     }
 
-    incident_get_date() {
-        let date = this.props.incident[this.props.match.params.measurement_id]
+    incident_parse_date() {
+        return this.props.incident[this.props.match.params.measurement_id]
             ? new Date(
                   `${
                       (
@@ -46,14 +48,76 @@ class AnomalyIncidentWidget extends Component {
                   }Z`
               )
             : new Date();
+    }
+
+    incident_get_date() {
+        let date = this.incident_parse_date();
 
         return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
     }
 
     incident_get_country() {
         return (
-            this.props.incident[this.props.match.params.measurement_id] || {}
-        ).probe_cc;
+            (this.props.incident[this.props.match.params.measurement_id] || {})
+                .probe_cc || ''
+        ).toLowerCase();
+    }
+
+    page_get_breadcrumbs() {
+        return (
+            (this.props.incident[this.props.match.params.measurement_id] || {})
+                .length || (
+                <div>
+                    <br />
+                    <Breadcrumb>
+                        <BreadcrumbItem>
+                            <Link to="/">Home</Link>
+                        </BreadcrumbItem>
+                        <BreadcrumbItem>
+                            <Link
+                                to={`/summary/${this.incident_parse_date().getFullYear()}`}
+                            >
+                                {this.incident_parse_date().getFullYear()}
+                            </Link>
+                        </BreadcrumbItem>
+                        <BreadcrumbItem>
+                            <Link
+                                to={`/summary/${this.incident_parse_date().getFullYear()}/${this.incident_get_country()}`}
+                            >
+                                {this.incident_get_country() &&
+                                    Countries().getName(
+                                        this.incident_get_country()
+                                    )}
+                            </Link>
+                        </BreadcrumbItem>
+                        <BreadcrumbItem>
+                            <Link
+                                to={`/summary/${this.incident_parse_date().getFullYear()}/${this.incident_get_country()}/${
+                                    (
+                                        this.props.incident[
+                                            this.props.match.params
+                                                .measurement_id
+                                        ] || {}
+                                    ).input
+                                }`}
+                            >
+                                {
+                                    (
+                                        this.props.incident[
+                                            this.props.match.params
+                                                .measurement_id
+                                        ] || {}
+                                    ).input
+                                }
+                            </Link>
+                        </BreadcrumbItem>
+                        <BreadcrumbItem active>
+                            {this.props.match.params.measurement_id}
+                        </BreadcrumbItem>
+                    </Breadcrumb>
+                </div>
+            )
+        );
     }
 
     parameter_get_table() {
@@ -138,6 +202,8 @@ class AnomalyIncidentWidget extends Component {
     render() {
         return (
             <div>
+                {this.page_get_breadcrumbs()}
+
                 <h2>
                     Anomaly report for measurement{' '}
                     {this.props.match.params.measurement_id}

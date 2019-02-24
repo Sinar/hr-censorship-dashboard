@@ -3,7 +3,9 @@ import {connect} from 'react-redux';
 import {country_history_fetch} from './fetcher.js';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
+import Countries from 'country-list';
 import {Link} from 'react-router-dom';
+import {Breadcrumb, BreadcrumbItem} from 'reactstrap';
 
 class AnomalySiteWidget extends Component {
     constructor(props) {
@@ -26,6 +28,38 @@ class AnomalySiteWidget extends Component {
             <Link to={`/incident/${data_row[column.field]}`}>
                 {data_row[column.field]}
             </Link>
+        );
+    }
+
+    page_get_breadcrumbs() {
+        return (
+            <div>
+                <br />
+                <Breadcrumb>
+                    <BreadcrumbItem>
+                        <Link to="/">Home</Link>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <Link to={`/summary/${this.props.match.params.year}`}>
+                            {this.props.match.params.year}
+                        </Link>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <Link
+                            to={`/summary/${this.props.match.params.year}/${
+                                this.props.match.params.country
+                            }`}
+                        >
+                            {Countries().getName(
+                                this.props.match.params.country
+                            )}
+                        </Link>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem active>
+                        {this.props.match.params.site}
+                    </BreadcrumbItem>
+                </Breadcrumb>
+            </div>
         );
     }
 
@@ -142,6 +176,8 @@ class AnomalySiteWidget extends Component {
     render() {
         return (
             <div>
+                {this.page_get_breadcrumbs()}
+
                 <h2>Site Anomaly history</h2>
                 {this.parameter_get_table()}
                 {this.anomaly_get_list()}

@@ -1,4 +1,4 @@
-const BASE_URL = '';
+const BASE_URL = 'http://localhost:1180';
 
 export function make_populate_retry(timestamp, callback, message) {
     return {
