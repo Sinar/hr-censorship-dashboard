@@ -23,4 +23,4 @@ import:
 		docker-compose up importer-my importer-vn importer-mm importer-kh importer-id
 
 patcher:
-	docker up patcher
+	docker-compose up patcher
