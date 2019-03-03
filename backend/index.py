@@ -133,6 +133,16 @@ def country_get_sites(hug_db, country):
 @hug.local()
 @hug.get('/api/asn/{country}', output=hug.output_format.json)
 def country_get_asn(hug_db, country):
+    return {
+        'country': country,
+        'asn': [row['probe_asn'] for row in db_get_asn(hug_db, country)]
+    }
+
+
+@cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '512')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
+def db_get_asn(hug_db, country):
+    result = []
+
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
             SELECT      DISTINCT probe_asn
@@ -140,16 +150,36 @@ def country_get_asn(hug_db, country):
             WHERE       LOWER(probe_cc) = %s
             ''', (country.lower(), ))
 
-        return {
-            'country': country,
-            'asn': [row['probe_asn'] for row in _cursor.fetchall()]
-        }
+        row = _cursor.fetchone()
+        while row:
+            result.append(row)
+            row = _cursor.fetchone()
+
+    return result
 
 
 @hug.local()
 @hug.get('/api/history/year/{year}/country/{country}')
 def history_year_get_country(hug_db, year, country):
+
+    return {
+        'country':
+        country,
+        'site_list': [{
+            'site_url':
+            site_url,
+            'as_list': [{
+                'as_number': as_number,
+                'measurements': measurements
+            } for as_number, measurements in as_list.items()]
+        } for site_url, as_list in db_fetch_country_history(hug_db, year, country).items()]
+    }
+
+
+@cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '512')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
+def db_fetch_country_history(hug_db, year, country):
     site_list = defaultdict(lambda: defaultdict(list))
+
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             '''
@@ -162,22 +192,13 @@ def history_year_get_country(hug_db, year, country):
             ''', (country.lower(), datetime(int(year), 1, 1),
                   datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)))
 
-        for row in _cursor.fetchall():
+        row = _cursor.fetchone()
+        while row:
             site_list[row['input']][row['probe_asn']].append(row)
 
-        return {
-            'country':
-            country,
-            'site_list': [{
-                'site_url':
-                site_url,
-                'as_list': [{
-                    'as_number': as_number,
-                    'measurements': measurements
-                } for as_number, measurements in as_list.items()]
-            } for site_url, as_list in site_list.items()]
-        }
+            row = _cursor.fetchone()
 
+    return site_list
 
 @hug.local()
 @hug.get('/api/history/duration/year/country/{country}/site/{url}')
@@ -266,7 +287,6 @@ def summary_get(hug_db, year):
         } for country, category_list in country_list.items()]
     }
 
-@cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '128')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
 def db_fetch_summary(hug_db, year):
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute('''
