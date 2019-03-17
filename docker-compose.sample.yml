@@ -33,3 +33,15 @@ services:
         volumes:
             - ./ooni-data:/var/lib/ooni-data
         restart: 'no'
+
+    import-asn:
+        build:
+            context: './crawler'
+            dockerfile: './Dockerfile-importer-asn'
+        env_file:
+            - db-variables.env
+        environment:
+            IMPORT_FILE: '/var/lib/asn-list/GeoLite2-ASN-Blocks-IPv4.csv'
+        volumes:
+            - ./asn-list:/var/lib/asn-list
+        restart: 'no'
