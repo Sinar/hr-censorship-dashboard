@@ -22,5 +22,11 @@ import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi &&\
 		docker-compose up --build importer-my importer-vn importer-mm importer-kh importer-id
 
+import-asn:
+	rm -rf asn-list && \
+		curl -O https://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip && \
+		unzip -j GeoLite2-ASN-CSV.zip -d asn-list && \
+		rm GeoLite2-ASN-CSV.zip
+
 patcher:
 	docker-compose up patcher

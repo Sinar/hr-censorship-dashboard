@@ -1,0 +1,8 @@
+FROM python:3
+
+RUN pip install 'networkx<2.0' 'pandas<0.24.0' odo cryptography pymysql SQLAlchemy &&\
+    mkdir -p /opt/importer
+
+COPY importer-asn.py /opt/importer/importer-asn.py
+
+CMD ["python", "/opt/importer/importer-asn.py"]
