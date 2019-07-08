@@ -1,6 +1,6 @@
 FROM python:3
 
-RUN pip install 'networkx<2.0' odo dask[complete] pymysql SQLAlchemy &&\
+RUN pip install 'networkx<2.0' git+https://github.com/blaze/odo dask[complete] cryptography pymysql SQLAlchemy &&\
     mkdir -p /opt/importer
 
 COPY importer.py /opt/importer/importer.py

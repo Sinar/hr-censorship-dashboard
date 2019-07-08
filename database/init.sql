@@ -6,7 +6,7 @@ CREATE TABLE sites (
     url VARCHAR(300) NOT NULL,
     category_code VARCHAR(255) NOT NULL,
     category_description TEXT,
-    date_added TIMESTAMP NOT NULL,
+    date_added TIMESTAMP NOT NULL DEFAULT NOW(),
     source VARCHAR(255) NOT NULL,
     notes TEXT,
     PRIMARY KEY(import_date, country_code, url)

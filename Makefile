@@ -10,17 +10,17 @@ build:
 
 up:
 	# the crawlers
-	docker-compose up -d crawler-my crawler-vn crawler-mm crawler-kh crawler-id
+	docker-compose up --build -d crawler-my crawler-vn crawler-mm crawler-kh crawler-id
 
 	# the API
-	docker-compose up -d backend
+	docker-compose up --build -d backend
 
 	# the static react site
-	docker-compose up -d frontend
+	docker-compose up --build -d frontend
 
 import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi &&\
-		docker-compose up importer-my importer-vn importer-mm importer-kh importer-id
+		docker-compose up --build importer-my importer-vn importer-mm importer-kh importer-id
 
 patcher:
 	docker-compose up patcher
