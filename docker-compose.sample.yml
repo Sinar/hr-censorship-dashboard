@@ -5,7 +5,7 @@ services:
             context: './crawler'
             dockerfile: './Dockerfile-importer'
         env_file:
-            - db-variables.env
+            - envfile
         environment:
             IMPORT_FILE: '/var/lib/test-lists/lists/my.csv'
         volumes:
@@ -16,7 +16,7 @@ services:
             context: './crawler'
             dockerfile: './Dockerfile-crawler'
         env_file:
-            - db-variables.env
+            - envfile
         environment:
             SLEEP_TIME: 1
             COUNTRY_CODE: 'MY'
@@ -27,7 +27,7 @@ services:
             context: './crawler'
             dockerfile: './Dockerfile-patcher'
         env_file:
-            - db-variables.env
+            - envfile
         environment:
             IMPORT_FILE: '/var/lib/ooni-data/ooni-data.jsonl'
         volumes:
@@ -39,7 +39,7 @@ services:
             context: './crawler'
             dockerfile: './Dockerfile-importer-asn'
         env_file:
-            - db-variables.env
+            - envfile
         environment:
             IMPORT_FILE: '/var/lib/asn-list/GeoLite2-ASN-Blocks-IPv4.csv'
         volumes:
