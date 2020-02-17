@@ -85,7 +85,7 @@ class AnomalyIncidentWidget extends Component {
                                 to={`/summary/${this.incident_parse_date().getFullYear()}/${this.incident_get_country()}`}
                             >
                                 {this.incident_get_country() &&
-                                    Countries().getName(
+                                    Countries.getName(
                                         this.incident_get_country()
                                     )}
                             </Link>
@@ -139,7 +139,7 @@ class AnomalyIncidentWidget extends Component {
                 parameter: 'country',
                 value:
                     (this.incident_get_country() &&
-                        Countries().getName(this.incident_get_country())) ||
+                        Countries.getName(this.incident_get_country())) ||
                     'n/a'
             },
             {
@@ -257,9 +257,7 @@ export default connect(
             if (!this.props.incident[this.props.match.params.measurement_id]) {
                 this.props.delegate_loading_populate(timestamp);
                 fetch(
-                    `https://api.ooni.io/api/v1/measurement/${
-                        this.props.match.params.measurement_id
-                    }`
+                    `https://api.ooni.io/api/v1/measurement/${this.props.match.params.measurement_id}`
                 )
                     .then(response => response.json())
                     .then(

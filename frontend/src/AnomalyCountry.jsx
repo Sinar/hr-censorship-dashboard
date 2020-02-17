@@ -159,7 +159,7 @@ class AnomalyCountryWidget extends Component {
                         </Link>
                     </BreadcrumbItem>
                     <BreadcrumbItem active>
-                        {Countries().getName(this.props.match.params.country)}
+                        {Countries.getName(this.props.match.params.country)}
                     </BreadcrumbItem>
                 </Breadcrumb>
             </div>
@@ -169,9 +169,7 @@ class AnomalyCountryWidget extends Component {
     site_get_template(data_row, column) {
         return (
             <Link
-                to={`/summary/${this.props.match.params.year}/${
-                    this.props.match.params.country
-                }/${data_row.site}`}
+                to={`/summary/${this.props.match.params.year}/${this.props.match.params.country}/${data_row.site}`}
             >
                 {data_row[column.field]}
             </Link>
@@ -226,8 +224,8 @@ class AnomalyCountryWidget extends Component {
                 {this.page_get_breadcrumbs()}
                 <h2>
                     Anomaly summary for{' '}
-                    {Countries().getName(this.props.match.params.country)} in
-                    year {this.props.match.params.year}
+                    {Countries.getName(this.props.match.params.country)} in year{' '}
+                    {this.props.match.params.year}
                 </h2>
 
                 <Nav tabs>
@@ -310,9 +308,7 @@ export default connect(
 
         handle_click_row(e) {
             this.props.history.push(
-                `/summary/${this.props.match.params.year}/${
-                    this.props.match.params.country
-                }/${e.data.site}`
+                `/summary/${this.props.match.params.year}/${this.props.match.params.country}/${e.data.site}`
             );
         },
 
