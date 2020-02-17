@@ -151,7 +151,7 @@ class AnomalyCurrentWidget extends Component {
             <div>
                 <h2>
                     Current Inaccessible Sites for{' '}
-                    {Countries().getName(this.props.match.params.country)}
+                    {Countries.getName(this.props.match.params.country)}
                 </h2>
                 <Nav tabs>
                     {this.props.country_list.map(country =>

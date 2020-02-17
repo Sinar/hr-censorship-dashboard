@@ -46,13 +46,9 @@ class AnomalySiteWidget extends Component {
                     </BreadcrumbItem>
                     <BreadcrumbItem>
                         <Link
-                            to={`/summary/${this.props.match.params.year}/${
-                                this.props.match.params.country
-                            }`}
+                            to={`/summary/${this.props.match.params.year}/${this.props.match.params.country}`}
                         >
-                            {Countries().getName(
-                                this.props.match.params.country
-                            )}
+                            {Countries.getName(this.props.match.params.country)}
                         </Link>
                     </BreadcrumbItem>
                     <BreadcrumbItem active>

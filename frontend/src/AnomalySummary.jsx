@@ -43,7 +43,7 @@ class AnomalySummaryWidget extends Component {
                     return current;
                 },
                 {
-                    country_name: Countries().getName(country),
+                    country_name: Countries.getName(country),
                     country: country
                 }
             )
@@ -75,9 +75,7 @@ class AnomalySummaryWidget extends Component {
     country_get_template(data_row, column) {
         return (
             <Link
-                to={`/summary/${this.props.match.params.year}/${
-                    data_row.country
-                }`}
+                to={`/summary/${this.props.match.params.year}/${data_row.country}`}
             >
                 {data_row[column.field]}
             </Link>
@@ -112,6 +110,7 @@ class AnomalySummaryWidget extends Component {
             <div>
                 <h2>Anomaly summary for year {this.props.match.params.year}</h2>
                 <Nav tabs>
+                    {this.navbar_get_year(2020)}
                     {this.navbar_get_year(2019)}
                     {this.navbar_get_year(2018)}
                     {this.navbar_get_year(2017)}
