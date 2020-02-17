@@ -1,4 +1,5 @@
-const BASE_URL = '';
+const BASE_URL = process.env.REACT_APP_BASE_URL || '';
+console.log(process.env)
 
 export function make_populate_retry(timestamp, callback, message) {
     return {
@@ -121,7 +122,7 @@ export function asn_fetch(dispatch, begin_callback, done_callback, country) {
         .then(response => response.json())
         .then(
             data => {
-                dispatch(make_populate_asn({[data.country]: data.asn}));
+                dispatch(make_populate_asn({ [data.country]: data.asn }));
                 done_callback(timestamp);
             },
             () => {
