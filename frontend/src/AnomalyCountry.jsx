@@ -236,6 +236,7 @@ class AnomalyCountryWidget extends Component {
                 <br />
 
                 <ButtonGroup>
+                    {this.year_get_button(2020)}
                     {this.year_get_button(2019)}
                     {this.year_get_button(2018)}
                     {this.year_get_button(2017)}
