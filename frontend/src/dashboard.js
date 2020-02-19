@@ -10,8 +10,8 @@ export default function dashboardApp(state = {}, action) {
             result = populate_anomaly_country(state, action);
             break;
 
-        case 'POPULATE_ASN':
-            result = populate_asn(state, action);
+        case 'POPULATE_ISP':
+            result = populate_isp(state, action);
             break;
 
         case 'POPULATE_CATEGORY':
@@ -36,6 +36,10 @@ export default function dashboardApp(state = {}, action) {
 
         case 'POPULATE_SITE':
             result = populate_site(state, action);
+            break;
+
+        case 'POPULATE_SITE_HISTORY':
+            result = populate_site_history(state, action);
             break;
 
         case 'POPULATE_SUMMARY':
@@ -77,12 +81,6 @@ function populate_anomaly_current(state, action) {
     });
 }
 
-function populate_asn(state, action) {
-    return Object.assign({}, state, {
-        asn: Object.assign({}, state.asn, action.data)
-    });
-}
-
 function populate_category(state, action) {
     return Object.assign({}, state, {
         category: action.data
@@ -98,6 +96,12 @@ function populate_country(state, action) {
 function populate_incident(state, action) {
     return Object.assign({}, state, {
         incident: Object.assign({}, state.incident || {}, action.data)
+    });
+}
+
+function populate_isp(state, action) {
+    return Object.assign({}, state, {
+        isp: Object.assign({}, state.isp, action.data)
     });
 }
 
@@ -134,6 +138,12 @@ function populate_retry(state, action) {
 function populate_site(state, action) {
     return Object.assign({}, state, {
         site: Object.assign({}, state.site || {}, action.data)
+    });
+}
+
+function populate_site_history(state, action) {
+    return Object.assign({}, state, {
+        history_site: Object.assign({}, state.history_site || {}, action.data)
     });
 }
 
