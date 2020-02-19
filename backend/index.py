@@ -1,6 +1,6 @@
 from collections import defaultdict
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 import cachetools.func
 import hug
@@ -131,28 +131,39 @@ def country_get_sites(hug_db, country):
 
 
 @hug.local()
-@hug.get('/api/asn/{country}', output=hug.output_format.json)
-def country_get_asn(hug_db, country):
+@hug.get('/api/isp/{country}', output=hug.output_format.json)
+def country_get_isp(hug_db, country):
     return {
         'country': country,
-        'asn': [row['probe_asn'] for row in db_get_asn(hug_db, country)]
+        'isp': [{
+            'isp_name': isp_name,
+            'as_list': [{
+                'as_number': as_number
+            }
+            for as_number in as_list]
+        } for isp_name, as_list in db_get_isp(hug_db, country).items()]
     }
 
 
 @cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '512')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
-def db_get_asn(hug_db, country):
-    result = []
+def db_get_isp(hug_db, country):
+    result = defaultdict(list)
 
     with db_connect(hug_db).cursor() as _cursor:
+        #FIXME speed me up by using a materialized view?
         _cursor.execute('''
-            SELECT      DISTINCT probe_asn
-            FROM        measurements
-            WHERE       LOWER(probe_cc) = %s
+            SELECT      m.probe_asn, COALESCE(a.autonomous_system_organization, 'unknown') AS isp
+            FROM        (SELECT DISTINCT probe_asn
+                        FROM   measurements
+                        WHERE  LOWER(probe_cc) = %s) m
+            LEFT JOIN   (SELECT DISTINCT autonomous_system_organization, autonomous_system_number FROM asn) a
+            ON          a.autonomous_system_number = m.probe_asn;
             ''', (country.lower(), ))
 
         row = _cursor.fetchone()
         while row:
-            result.append(row)
+            result[row['isp']].append(row['probe_asn'])
+
             row = _cursor.fetchone()
 
     return result
@@ -168,17 +179,56 @@ def history_year_get_country(hug_db, year, country):
         'site_list': [{
             'site_url':
             site_url,
-            'as_list': [{
-                'as_number': as_number,
-                'measurements': measurements
-            } for as_number, measurements in as_list.items()]
-        } for site_url, as_list in db_fetch_country_history(hug_db, year, country).items()]
+            'isp_list': [{
+                'isp': row['isp'],
+                'count': row['count']
+            } for row in isp_list]
+        } for site_url, isp_list in db_fetch_country_history(hug_db, year, country).items()]
     }
 
 
-@cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '512')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
+#@cachetools.func.ttl_cache(maxsize=int(os.environ.get('CACHE_SIZE', '512')), ttl=int(os.environ.get('CACHE_TTL', '3600')))
 def db_fetch_country_history(hug_db, year, country):
-    site_list = defaultdict(lambda: defaultdict(list))
+    site_list = defaultdict(list)
+
+    with db_connect(hug_db).cursor() as _cursor:
+        _cursor.execute(
+            '''
+            SELECT      m.input, COALESCE(a.autonomous_system_organization, 'unknown') AS isp, COUNT(*) AS count
+            FROM        measurements m
+            LEFT JOIN   (SELECT DISTINCT autonomous_system_organization, autonomous_system_number FROM asn) a
+            ON          a.autonomous_system_number = m.probe_asn
+            WHERE       LOWER(m.probe_cc) = %s
+                        AND (m.anomaly = TRUE OR m.confirmed = TRUE)
+                        AND (m.measurement_start_time BETWEEN '%s-01-01' AND '%s-12-31')
+            GROUP BY    m.input, isp;
+            ''', (country.lower(), int(year),
+                  int(year)))
+
+        row = _cursor.fetchone()
+        while row:
+            site_list[row['input']].append(row)
+
+            row = _cursor.fetchone()
+
+    return site_list
+
+
+@hug.local()
+@hug.get('/api/history/year/{year}/country/{country}/site')
+def history_year_country_get_site(request, hug_db, year, country):
+    site = request.params['site']
+
+    return {
+        'year': year,
+        'country': country,
+        'site': site,
+        'history': db_fetch_site_history(hug_db, year, country, site)
+    }
+
+
+def db_fetch_site_history(hug_db, year, country, site):
+    result = defaultdict(list)
 
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
@@ -187,18 +237,20 @@ def db_fetch_country_history(hug_db, year, country):
             FROM        measurements
             WHERE       LOWER(probe_cc) = %s
                         AND (anomaly = TRUE OR confirmed = TRUE)
-                        AND (measurement_start_time BETWEEN %s AND %s)
-            ORDER BY    measurement_start_time DESC
-            ''', (country.lower(), datetime(int(year), 1, 1),
-                  datetime(int(year) + 1, 1, 1) - timedelta(seconds=1)))
+                        AND (measurement_start_time BETWEEN '%s-01-01' AND '%s-12-31')
+                        AND input LIKE %s
+            ORDER BY    measurement_start_time
+            ''', (country.lower(), int(year), int(year), site if isinstance(site, str) else '%'.join(site))
+        )
 
         row = _cursor.fetchone()
         while row:
-            site_list[row['input']][row['probe_asn']].append(row)
+            result[row['probe_asn']].append(row)
 
             row = _cursor.fetchone()
+    
+    return result
 
-    return site_list
 
 @hug.local()
 @hug.get('/api/history/duration/year/country/{country}/site/{url}')
