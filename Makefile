@@ -35,5 +35,11 @@ asn-list:
 		unzip -j GeoLite2-ASN-CSV.zip -d asn-list && \
 		rm GeoLite2-ASN-CSV.zip
 
+asn-list:
+	rm -rf asn-list && \
+		curl -L -o GeoLite2-ASN-CSV.zip "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=${GEOIP_LICENSE}&suffix=zip" && \
+		unzip -j GeoLite2-ASN-CSV.zip -d asn-list && \
+		rm GeoLite2-ASN-CSV.zip
+
 patcher:
 	docker-compose up patcher
