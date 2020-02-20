@@ -1,3 +1,5 @@
+from random import randint
+
 import os
 import time
 import logging
@@ -26,16 +28,16 @@ with conn:
     with conn.cursor() as _fetch_cursor:
         _fetch_cursor.execute(
             '''
-                              SELECT     *
-                              FROM       sites s
-                              JOIN       (
-                                  SELECT     country_code, url, MAX(import_date) AS import_date
-                                  FROM       sites
-                                  GROUP BY   country_code, url
-                              ) smax
-                              USING      (import_date, url, country_code)
-                              WHERE      country_code = %s
-                              ''', (os.environ.get('COUNTRY_CODE', 'MY'), ))
+            SELECT     distinct url
+            FROM       sites s
+            JOIN       (
+                SELECT     country_code, url, MAX(import_date) AS import_date
+                FROM       sites
+                GROUP BY   country_code, url
+            ) smax
+            USING      (import_date, url, country_code)
+            WHERE      LOWER(country_code) IN (%s, 'global')
+            ''', (os.environ.get('COUNTRY_CODE', 'MY').lower(), ))
 
         for i, row in enumerate(_fetch_cursor.fetchall()):
             logging.info('%s: Fetching measurements for %s',
@@ -43,7 +45,7 @@ with conn:
             response = requests.get(
                 'https://api.ooni.io/api/v1/measurements',
                 params={
-                    'probe_cc': row['country_code'],
+                    'probe_cc': os.environ.get('COUNTRY_CODE', 'MY').upper(),
                     'input': row['url']
                 })
 
@@ -76,28 +78,51 @@ with conn:
 
             conn.commit()
 
-            time.sleep(float(os.environ.get('SLEEP_TIME', 2)))
+            time.sleep(randint(5,9))
 
-        # write summary
-        conn.begin()
-        with conn.cursor() as _cur:
-            logging.info(
-                '%s: Updating summary before ending this crawling session',
-                os.environ.get('COUNTRY_CODE', 'MY'))
-            _cur.execute(
-                '''
-                REPLACE INTO summary_view(year, country, category, count)
-                    SELECT      YEAR(measurement_start_time) AS year,
-                                m.probe_cc AS country,
-                                s.category_code AS category,
-                                COUNT(DISTINCT m.input) AS count
-                    FROM        measurements m
-                    JOIN        sites s
-                    ON          (m.input = s.url
-                                    AND m.probe_cc = s.country_code)
-                    WHERE       YEAR(measurement_start_time) = YEAR(NOW())
-                                AND m.probe_cc = %s
-                                AND (anomaly = TRUE OR confirmed = TRUE)
-                    GROUP BY    YEAR(measurement_start_time), m.probe_cc, s.category_code;
-                ''', (os.environ.get('COUNTRY_CODE', 'MY'), ))
-        conn.commit()
+    conn.begin()
+    with conn.cursor() as _cur:
+        logging.info(
+            '%s: Updating summary before ending this crawling session',
+            os.environ.get('COUNTRY_CODE', 'MY'))
+        _cur.execute(
+            '''
+            REPLACE INTO summary_view(year, country, category, count)
+                SELECT      YEAR(measurement_start_time) AS year,
+                            m.probe_cc AS country,
+                            s.category_code AS category,
+                            COUNT(DISTINCT m.input) AS count
+                FROM        measurements m
+                JOIN        sites s
+                ON          (m.input = s.url
+                                AND m.probe_cc = s.country_code)
+                WHERE       YEAR(measurement_start_time) = YEAR(NOW())
+                            AND LOWER(m.probe_cc) = %s
+                            AND (anomaly = TRUE OR confirmed = TRUE)
+                GROUP BY    YEAR(measurement_start_time), m.probe_cc, s.category_code;
+            ''', (os.environ.get('COUNTRY_CODE', 'MY').lower(), ))
+    conn.commit()
+
+    conn.begin()
+    with conn.cursor() as _cur:
+        logging.info(
+            '%s: Clearing previous isp cache',
+            os.environ.get('COUNTRY_CODE', 'MY'))
+        _cur.execute(
+            'DELETE FROM isp WHERE LOWER(country_code) = %s',
+            (os.environ.get('COUNTRY_CODE', 'MY').lower(), ))
+
+        logging.info(
+            '%s: populating isp cache',
+            os.environ.get('COUNTRY_CODE', 'MY'))
+        _cur.execute(
+            '''
+            INSERT INTO isp (country_code, isp, asn)
+                SELECT      DISTINCT m.probe_cc, COALESCE(a.autonomous_system_organization, 'unknown'), m.probe_asn
+                FROM        measurements m
+                LEFT JOIN   asn a
+                ON          a.autonomous_system_number = m.probe_asn
+                WHERE       LOWER(m.probe_cc) = %s
+            ''',
+            os.environ.get('COUNTRY_CODE', 'MY').lower())
+    conn.commit()
