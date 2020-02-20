@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {
-    asn_fetch,
+    isp_fetch,
     site_fetch,
     country_history_fetch,
     summary_fetch
@@ -104,19 +104,15 @@ class AnomalyCountryWidget extends Component {
                     this.props.match.params.country
                 ] || {})[site.url] || {};
 
-            if (Object.keys(anomaly).length > 0) {
-                current.push(
-                    (
-                        this.props.asn[this.props.match.params.country] || []
-                    ).reduce(
-                        (current, asn) => {
-                            current[asn] = (anomaly[asn] || []).length;
-                            return current;
-                        },
-                        {site: site.url}
-                    )
-                );
-            }
+            current.push(
+                (this.props.isp[this.props.match.params.country] || []).reduce(
+                    (current_site, isp) => {
+                        current_site[isp.isp_name] = anomaly[isp.isp_name] || 0;
+                        return current_site;
+                    },
+                    {site: site.url}
+                )
+            );
 
             return current;
         }, []);
@@ -159,7 +155,7 @@ class AnomalyCountryWidget extends Component {
                         </Link>
                     </BreadcrumbItem>
                     <BreadcrumbItem active>
-                        {Countries().getName(this.props.match.params.country)}
+                        {Countries.getName(this.props.match.params.country)}
                     </BreadcrumbItem>
                 </Breadcrumb>
             </div>
@@ -169,9 +165,7 @@ class AnomalyCountryWidget extends Component {
     site_get_template(data_row, column) {
         return (
             <Link
-                to={`/summary/${this.props.match.params.year}/${
-                    this.props.match.params.country
-                }/${data_row.site}`}
+                to={`/summary/${this.props.match.params.year}/${this.props.match.params.country}/${data_row.site}`}
             >
                 {data_row[column.field]}
             </Link>
@@ -200,18 +194,21 @@ class AnomalyCountryWidget extends Component {
                             header="Site URL"
                             style={{width: '350px'}}
                         />
-                        {(
-                            this.props.asn[this.props.match.params.country] ||
-                            []
-                        ).map(asn => (
-                            <Column
-                                body={this.count_get_template}
-                                key={asn}
-                                field={asn}
-                                header={asn}
-                                style={{width: '100px'}}
-                            />
-                        ))}
+                        {(this.props.isp[this.props.match.params.country] || [])
+                            .filter(isp =>
+                                sites.some(site => {
+                                    return site[isp.isp_name] > 0;
+                                })
+                            )
+                            .map(isp => (
+                                <Column
+                                    body={this.count_get_template}
+                                    key={isp.isp_name}
+                                    field={isp.isp_name}
+                                    header={isp.isp_name}
+                                    style={{width: '100px'}}
+                                />
+                            ))}
                     </DataTable>
                 </div>
             );
@@ -226,8 +223,8 @@ class AnomalyCountryWidget extends Component {
                 {this.page_get_breadcrumbs()}
                 <h2>
                     Anomaly summary for{' '}
-                    {Countries().getName(this.props.match.params.country)} in
-                    year {this.props.match.params.year}
+                    {Countries.getName(this.props.match.params.country)} in year{' '}
+                    {this.props.match.params.year}
                 </h2>
 
                 <Nav tabs>
@@ -239,6 +236,7 @@ class AnomalyCountryWidget extends Component {
                 <br />
 
                 <ButtonGroup>
+                    {this.year_get_button(2020)}
                     {this.year_get_button(2019)}
                     {this.year_get_button(2018)}
                     {this.year_get_button(2017)}
@@ -248,8 +246,14 @@ class AnomalyCountryWidget extends Component {
 
                 {this.summary_get_table()}
 
-                {Object.entries(this.props.category).map(([_, category]) =>
-                    this.category_get_summary(category)
+                {Object.entries(
+                    (this.props.summary[this.props.match.params.year] || {})[
+                        this.props.match.params.country
+                    ] || {}
+                ).map(([category_code, _]) =>
+                    this.category_get_summary(
+                        this.props.category[category_code] || {}
+                    )
                 )}
             </div>
         );
@@ -263,7 +267,7 @@ export default connect(
         country_list: state.country || [],
         site: state.site || {},
         category: state.category || {},
-        asn: state.asn || {}
+        isp: state.isp || {}
     }),
     dispatch => ({
         handle_click_country(e, country) {
@@ -271,8 +275,8 @@ export default connect(
 
             this.props.delegate_loading_reset();
 
-            if (!this.props.asn[country]) {
-                asn_fetch(
+            if (!this.props.isp[country]) {
+                isp_fetch(
                     dispatch,
                     this.props.delegate_loading_populate,
                     this.props.delegate_loading_done,
@@ -310,9 +314,7 @@ export default connect(
 
         handle_click_row(e) {
             this.props.history.push(
-                `/summary/${this.props.match.params.year}/${
-                    this.props.match.params.country
-                }/${e.data.site}`
+                `/summary/${this.props.match.params.year}/${this.props.match.params.country}/${e.data.site}`
             );
         },
 
@@ -352,8 +354,8 @@ export default connect(
                 );
             }
 
-            if (!this.props.asn[this.props.match.params.country]) {
-                asn_fetch(
+            if (!this.props.isp[this.props.match.params.country]) {
+                isp_fetch(
                     dispatch,
                     this.props.delegate_loading_populate,
                     this.props.delegate_loading_done,

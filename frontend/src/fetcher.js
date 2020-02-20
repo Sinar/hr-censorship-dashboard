@@ -1,4 +1,4 @@
-const BASE_URL = '';
+const BASE_URL = process.env.REACT_APP_BASE_URL || '';
 
 export function make_populate_retry(timestamp, callback, message) {
     return {
@@ -30,9 +30,9 @@ function make_populate_anomaly_country(data) {
     };
 }
 
-function make_populate_asn(data) {
+function make_populate_isp(data) {
     return {
-        type: 'POPULATE_ASN',
+        type: 'POPULATE_ISP',
         data: data
     };
 }
@@ -54,6 +54,13 @@ function make_populate_country(data) {
 function make_populate_site(data) {
     return {
         type: 'POPULATE_SITE',
+        data: data
+    };
+}
+
+function make_populate_site_history(data) {
+    return {
+        type: 'POPULATE_SITE_HISTORY',
         data: data
     };
 }
@@ -113,15 +120,15 @@ export function anomaly_current_fetch(
         );
 }
 
-export function asn_fetch(dispatch, begin_callback, done_callback, country) {
+export function isp_fetch(dispatch, begin_callback, done_callback, country) {
     let timestamp = new Date();
 
     begin_callback(timestamp);
-    fetch(`${BASE_URL}/api/asn/${country}`)
+    fetch(`${BASE_URL}/api/isp/${country}`)
         .then(response => response.json())
         .then(
             data => {
-                dispatch(make_populate_asn({[data.country]: data.asn}));
+                dispatch(make_populate_isp({[data.country]: data.isp}));
                 done_callback(timestamp);
             },
             () => {
@@ -129,7 +136,7 @@ export function asn_fetch(dispatch, begin_callback, done_callback, country) {
                     make_populate_retry(
                         timestamp,
                         () =>
-                            asn_fetch(
+                            isp_fetch(
                                 dispatch,
                                 begin_callback,
                                 done_callback,
@@ -229,11 +236,14 @@ export function country_history_fetch(
                                 (current, site) => {
                                     current[
                                         site.site_url
-                                    ] = site.as_list.reduce((_current, asn) => {
-                                        _current[asn.as_number] =
-                                            asn.measurements;
-                                        return _current;
-                                    }, {});
+                                    ] = site.isp_list.reduce(
+                                        (_current, incoming) => {
+                                            _current[incoming.isp] =
+                                                incoming.count;
+                                            return _current;
+                                        },
+                                        {}
+                                    );
                                     return current;
                                 },
                                 {}
@@ -296,6 +306,55 @@ export function site_fetch(dispatch, begin_callback, done_callback, country) {
                                 country
                             ),
                         'Site list fetching failed'
+                    )
+                );
+                done_callback(timestamp);
+            }
+        );
+}
+
+export function site_fetch_history(
+    dispatch,
+    begin_callback,
+    done_callback,
+    year,
+    country,
+    site
+) {
+    let timestamp = new Date();
+
+    begin_callback(timestamp);
+    fetch(
+        `${BASE_URL}/api/history/year/${year}/country/${country}/site/?site=${site}`
+    )
+        .then(response => response.json())
+        .then(
+            data => {
+                dispatch(
+                    make_populate_site_history({
+                        [year]: {
+                            [country]: {
+                                [site]: data.history
+                            }
+                        }
+                    })
+                );
+                done_callback(timestamp);
+            },
+            () => {
+                dispatch(
+                    make_populate_retry(
+                        timestamp,
+                        () =>
+                            site_fetch_history(
+                                dispatch,
+                                begin_callback,
+                                done_callback,
+                                year,
+                                country,
+                                site
+                            ),
+                        'Site history fetching failed'
                     )
                 );
                 done_callback(timestamp);

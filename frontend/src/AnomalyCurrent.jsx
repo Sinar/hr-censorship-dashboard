@@ -6,7 +6,7 @@ import {Column} from 'primereact/column';
 import Countries from 'country-list';
 import {Link} from 'react-router-dom';
 
-import {asn_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
+import {isp_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
 
 class AnomalyCurrentWidget extends Component {
     constructor(props) {
@@ -48,19 +48,15 @@ class AnomalyCurrentWidget extends Component {
                     site.url
                 ] || {};
 
-            if (Object.keys(anomaly).length > 0) {
-                current.push(
-                    (
-                        this.props.asn[this.props.match.params.country] || []
-                    ).reduce(
-                        (current, asn) => {
-                            current[asn] = (anomaly[asn] || []).length;
-                            return current;
-                        },
-                        {site: site.url}
-                    )
-                );
-            }
+            current.push(
+                (this.props.isp[this.props.match.params.country] || []).reduce(
+                    (current, isp) => {
+                        current[isp.isp_name] = anomaly[isp.name] || 0;
+                        return current;
+                    },
+                    {site: site.url}
+                )
+            );
 
             return current;
         }, []);
@@ -89,14 +85,14 @@ class AnomalyCurrentWidget extends Component {
                             style={{width: '350px'}}
                         />
                         {(
-                            this.props.asn[this.props.match.params.country] ||
+                            this.props.isp[this.props.match.params.country] ||
                             []
-                        ).map(asn => (
+                        ).map(isp => (
                             <Column
                                 body={this.count_get_template}
-                                key={asn}
-                                field={asn}
-                                header={asn}
+                                key={isp.isp_name}
+                                field={isp.isp_name}
+                                header={isp.isp_name}
                                 style={{width: '100px'}}
                             />
                         ))}
@@ -151,7 +147,7 @@ class AnomalyCurrentWidget extends Component {
             <div>
                 <h2>
                     Current Inaccessible Sites for{' '}
-                    {Countries().getName(this.props.match.params.country)}
+                    {Countries.getName(this.props.match.params.country)}
                 </h2>
                 <Nav tabs>
                     {this.props.country_list.map(country =>
@@ -176,15 +172,15 @@ export default connect(
         current: state.current || [],
         country_list: state.country || [],
         category: state.category || {},
-        asn: state.asn || [],
+        isp: state.isp || [],
         site: state.site || {}
     }),
     dispatch => ({
         handle_click(e, country) {
             e.preventDefault();
 
-            if (!this.props.asn[country]) {
-                asn_fetch(
+            if (!this.props.isp[country]) {
+                isp_fetch(
                     dispatch,
                     this.props.delegate_loading_populate,
                     this.props.delegate_loading_done,
@@ -222,8 +218,8 @@ export default connect(
         },
 
         handle_load() {
-            if (!this.props.asn[this.props.match.params.country]) {
-                asn_fetch(
+            if (!this.props.isp[this.props.match.params.country]) {
+                isp_fetch(
                     dispatch,
                     this.props.delegate_loading_populate,
                     this.props.delegate_loading_done,

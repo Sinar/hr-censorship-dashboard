@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {country_history_fetch} from './fetcher.js';
+import {isp_fetch, site_fetch_history} from './fetcher.js';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import Countries from 'country-list';
@@ -46,13 +46,9 @@ class AnomalySiteWidget extends Component {
                     </BreadcrumbItem>
                     <BreadcrumbItem>
                         <Link
-                            to={`/summary/${this.props.match.params.year}/${
-                                this.props.match.params.country
-                            }`}
+                            to={`/summary/${this.props.match.params.year}/${this.props.match.params.country}`}
                         >
-                            {Countries().getName(
-                                this.props.match.params.country
-                            )}
+                            {Countries.getName(this.props.match.params.country)}
                         </Link>
                     </BreadcrumbItem>
                     <BreadcrumbItem active>
@@ -99,55 +95,90 @@ class AnomalySiteWidget extends Component {
         );
     }
 
-    anomaly_get_list() {
-        return Object.entries(
-            ((this.props.chistory[this.props.match.params.year] || {})[
+    history_has_asn(asn) {
+        return Object.keys(
+            (((this.props.shistory || {})[this.props.match.params.year] || {})[
                 this.props.match.params.country
             ] || {})[this.props.match.params.site] || {}
-        ).map(([asn, anomaly_list]) => {
-            return (
-                <div key={asn}>
-                    <h3>{asn}</h3>
-                    <DataTable
-                        value={anomaly_list}
-                        onRowClick={this.handle_click_row}
-                    >
-                        <Column
-                            body={this.measurement_get_template}
-                            key="measurement_id"
-                            field="measurement_id"
-                            header="Measurement ID"
-                        />
-                        <Column
-                            body={this.anomaly_get_template}
-                            key="anomaly"
-                            field="anomaly"
-                            header="Is anomaly"
-                        />
-                        <Column
-                            key="measurement_start_time"
-                            field="measurement_start_time"
-                            header="Measurement Time"
-                        />
-                        <Column
-                            key="measurement_url"
-                            field="measurement_url"
-                            header="Measurement URL"
-                        />
-                        <Column
-                            key="test_name"
-                            field="test_name"
-                            header="Test name"
-                        />
-                        <Column
-                            body={this.status_get_template}
-                            key="failure"
-                            field="failure"
-                            header="Test error"
-                        />
-                    </DataTable>
-                </div>
-            );
+        ).includes(asn);
+    }
+
+    anomaly_get_list() {
+        return (
+            (this.props.isp || {})[this.props.match.params.country] || []
+        ).map(isp => {
+            let result = null;
+
+            if (isp.as_list.some(as => this.history_has_asn(as.as_number))) {
+                console.log();
+                result = (
+                    <div key={isp.isp_name}>
+                        <h3>{isp.isp_name}</h3>
+                        {Object.entries(
+                            (((this.props.shistory || {})[
+                                this.props.match.params.year
+                            ] || {})[this.props.match.params.country] || {})[
+                                this.props.match.params.site
+                            ] || {}
+                        )
+                            .filter(([asn, _]) => {
+                                return isp.as_list
+                                    .map(as => as.as_number)
+                                    .includes(asn);
+                            })
+                            .map(([asn, anomaly_list]) => {
+                                return (
+                                    <div key={asn}>
+                                        <h4>{asn}</h4>
+                                        <DataTable
+                                            value={anomaly_list}
+                                            onRowClick={this.handle_click_row}
+                                        >
+                                            <Column
+                                                body={
+                                                    this
+                                                        .measurement_get_template
+                                                }
+                                                key="measurement_id"
+                                                field="measurement_id"
+                                                header="Measurement ID"
+                                            />
+                                            <Column
+                                                body={this.anomaly_get_template}
+                                                key="anomaly"
+                                                field="anomaly"
+                                                header="Is anomaly"
+                                            />
+                                            <Column
+                                                key="measurement_start_time"
+                                                field="measurement_start_time"
+                                                header="Measurement Time"
+                                            />
+                                            <Column
+                                                key="measurement_url"
+                                                field="measurement_url"
+                                                header="Measurement URL"
+                                            />
+                                            <Column
+                                                key="test_name"
+                                                field="test_name"
+                                                header="Test name"
+                                            />
+                                            <Column
+                                                body={this.status_get_template}
+                                                key="failure"
+                                                field="failure"
+                                                header="Test error"
+                                            />
+                                        </DataTable>
+                                    </div>
+                                );
+                            })}
+                    </div>
+                );
+            }
+
+            return result;
         });
     }
 
@@ -188,22 +219,33 @@ class AnomalySiteWidget extends Component {
 
 export default connect(
     state => ({
-        chistory: state.history || {}
+        shistory: state.history_site || {},
+        isp: state.isp || {}
     }),
     dispatch => ({
         handle_load() {
             this.props.delegate_loading_reset();
 
             if (
-                !(this.props.chistory[this.props.match.params.year] || {})[
+                !((this.props.shistory[this.props.match.params.year] || {})[
                     this.props.match.params.country
-                ]
+                ] || {})[this.props.match.params.site]
             ) {
-                country_history_fetch(
+                site_fetch_history(
                     dispatch,
                     this.props.delegate_loading_populate,
                     this.props.delegate_loading_done,
                     this.props.match.params.year,
+                    this.props.match.params.country,
+                    this.props.match.params.site
+                );
+            }
+
+            if (!this.props.isp[this.props.match.params.country]) {
+                isp_fetch(
+                    dispatch,
+                    this.props.delegate_loading_populate,
+                    this.props.delegate_loading_done,
                     this.props.match.params.country
                 );
             }
