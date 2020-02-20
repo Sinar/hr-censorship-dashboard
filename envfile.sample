@@ -4,4 +4,4 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=censorship
 
-GEOIP_LICENSE=m5wWA7BRj3ezweHs
+GEOIP_LICENSE=somethingmorerandom
