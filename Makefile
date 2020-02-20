@@ -27,7 +27,7 @@ up:
 
 import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi &&\
-		docker-compose up --build importer-my importer-vn importer-mm importer-kh importer-id
+		docker-compose up --build importer-global importer-my importer-vn importer-mm importer-kh importer-id
 
 asn-list:
 	rm -rf asn-list && \

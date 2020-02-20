@@ -98,24 +98,33 @@ class AnomalyCountryWidget extends Component {
             (this.props.site[this.props.match.params.country] || {})[
                 category.category_code
             ] || []
-        ).reduce((current, site) => {
-            let anomaly =
-                ((this.props.chistory[this.props.match.params.year] || {})[
-                    this.props.match.params.country
-                ] || {})[site.url] || {};
+        )
+            .reduce((current, site) => {
+                let anomaly =
+                    ((this.props.chistory[this.props.match.params.year] || {})[
+                        this.props.match.params.country
+                    ] || {})[site.url] || {};
 
-            current.push(
-                (this.props.isp[this.props.match.params.country] || []).reduce(
-                    (current_site, isp) => {
-                        current_site[isp.isp_name] = anomaly[isp.isp_name] || 0;
-                        return current_site;
-                    },
-                    {site: site.url}
+                current.push(
+                    (
+                        this.props.isp[this.props.match.params.country] || []
+                    ).reduce(
+                        (current_site, isp) => {
+                            current_site[isp.isp_name] =
+                                anomaly[isp.isp_name] || 0;
+                            return current_site;
+                        },
+                        {site: site.url}
+                    )
+                );
+
+                return current;
+            }, [])
+            .filter(site =>
+                Object.entries(site || {}).some(
+                    ([property, value]) => property === 'name' || value > 0
                 )
             );
-
-            return current;
-        }, []);
     }
 
     count_get_template(data_row, column) {

@@ -33,6 +33,7 @@ def country_get_list(hug_db):
         _cursor.execute('''
             SELECT  DISTINCT country_code
             FROM    sites
+            WHERE   country_code != 'GLOBAL'
             ''')
 
         return {
@@ -105,13 +106,15 @@ def country_get_sites(hug_db, country):
         _cursor.execute('''
             SELECT      s.*
             FROM        sites s
-            JOIN        (SELECT     MAX(import_date) AS import_date
-                         FROM       sites
-                         WHERE      LOWER(country_code) = %s) last
-            ON          s.import_date = last.import_date
-            WHERE       LOWER(country_code) = %s
+            JOIN        (
+                SELECT     country_code, url, MAX(import_date) AS import_date
+                FROM       sites
+                GROUP BY   country_code, url
+            ) smax
+            USING       (import_date, url, country_code)
+            WHERE       LOWER(country_code) IN (%s, 'global')
             ORDER BY    category_code, url
-            ''', (country.lower(), country.lower()))
+            ''', (country.lower(), ))
 
         for row in _cursor.fetchall():
             try:
@@ -150,19 +153,15 @@ def db_get_isp(hug_db, country):
     result = defaultdict(list)
 
     with db_connect(hug_db).cursor() as _cursor:
-        #FIXME speed me up by using a materialized view?
         _cursor.execute('''
-            SELECT      m.probe_asn, COALESCE(a.autonomous_system_organization, 'unknown') AS isp
-            FROM        (SELECT DISTINCT probe_asn
-                        FROM   measurements
-                        WHERE  LOWER(probe_cc) = %s) m
-            LEFT JOIN   (SELECT DISTINCT autonomous_system_organization, autonomous_system_number FROM asn) a
-            ON          a.autonomous_system_number = m.probe_asn;
+            SELECT      isp, asn
+            FROM        isp
+            WHERE       LOWER(country_code) = %s
             ''', (country.lower(), ))
 
         row = _cursor.fetchone()
         while row:
-            result[row['isp']].append(row['probe_asn'])
+            result[row['isp']].append(row['asn'])
 
             row = _cursor.fetchone()
 
@@ -194,10 +193,10 @@ def db_fetch_country_history(hug_db, year, country):
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             '''
-            SELECT      m.input, COALESCE(a.autonomous_system_organization, 'unknown') AS isp, COUNT(*) AS count
+            SELECT      m.input, i.isp, COUNT(*) AS count
             FROM        measurements m
-            LEFT JOIN   (SELECT DISTINCT autonomous_system_organization, autonomous_system_number FROM asn) a
-            ON          a.autonomous_system_number = m.probe_asn
+            JOIN        isp i
+            ON          i.asn = m.probe_asn
             WHERE       LOWER(m.probe_cc) = %s
                         AND (m.anomaly = TRUE OR m.confirmed = TRUE)
                         AND (m.measurement_start_time BETWEEN '%s-01-01' AND '%s-12-31')
@@ -344,7 +343,7 @@ def db_fetch_summary(hug_db, year):
         _cursor.execute('''
             SELECT      country, category, count
             FROM        summary_view
-            WHERE       year = %s;
+            WHERE       year = %s AND country != 'GLOBAL';
             ''', (year, ))
 
         return _cursor.fetchall()
