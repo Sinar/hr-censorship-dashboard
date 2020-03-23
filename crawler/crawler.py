@@ -95,7 +95,7 @@ with conn:
                 FROM        measurements m
                 JOIN        sites s
                 ON          (m.input = s.url
-                                AND m.probe_cc = s.country_code)
+                                AND s.country_code IN (m.probe_cc, 'GLOBAL'))
                 WHERE       YEAR(measurement_start_time) = YEAR(NOW())
                             AND LOWER(m.probe_cc) = %s
                             AND (anomaly = TRUE OR confirmed = TRUE)
