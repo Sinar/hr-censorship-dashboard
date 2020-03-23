@@ -66,16 +66,17 @@ class AnomalyCountryWidget extends Component {
     }
 
     summary_get_table() {
-        let data = Object.entries(
-            (this.props.summary[this.props.match.params.year] || {})[
-                this.props.match.params.country
-            ] || {}
-        ).map(([category_code, count]) => ({
-            category: category_code,
-            description: (this.props.category[category_code] || {})
-                .category_description,
-            count: count
-        }));
+        let data =
+            Object.entries(
+                this.props.summary?.[this.props.match.params.year]?.[
+                    this.props.match.params.country
+                ] || {}
+            ).map(([category_code, count]) => ({
+                category: category_code,
+                description: this.props.category?.[category_code]
+                    ?.category_description,
+                count: count
+            })) || [];
         return (
             <DataTable value={data}>
                 <Column
@@ -95,36 +96,35 @@ class AnomalyCountryWidget extends Component {
 
     category_get_sites(category) {
         return (
-            (this.props.site[this.props.match.params.country] || {})[
+            this.props.site?.[this.props.match.params.country]?.[
                 category.category_code
-            ] || []
-        )
-            .reduce((current, site) => {
-                let anomaly =
-                    ((this.props.chistory[this.props.match.params.year] || {})[
-                        this.props.match.params.country
-                    ] || {})[site.url] || {};
+            ]
+                ?.reduce((current, site) => {
+                    let anomaly = this.props.chistory?.[
+                        this.props.match.params.year
+                    ]?.[this.props.match.params.country]?.[site.url];
 
-                current.push(
-                    (
-                        this.props.isp[this.props.match.params.country] || []
-                    ).reduce(
-                        (current_site, isp) => {
-                            current_site[isp.isp_name] =
-                                anomaly[isp.isp_name] || 0;
-                            return current_site;
-                        },
-                        {site: site.url}
+                    current.push(
+                        this.props.isp?.[
+                            this.props.match.params.country
+                        ].reduce(
+                            (current_site, isp) => {
+                                current_site[isp.isp_name] =
+                                    anomaly?.[isp.isp_name] || 0;
+                                return current_site;
+                            },
+                            {site: site.url}
+                        )
+                    );
+
+                    return current;
+                }, [])
+                ?.filter(site =>
+                    Object.entries(site || {}).some(
+                        ([property, value]) => property === 'name' || value > 0
                     )
-                );
-
-                return current;
-            }, [])
-            .filter(site =>
-                Object.entries(site || {}).some(
-                    ([property, value]) => property === 'name' || value > 0
-                )
-            );
+                ) || []
+        );
     }
 
     count_get_template(data_row, column) {
@@ -203,7 +203,7 @@ class AnomalyCountryWidget extends Component {
                             header="Site URL"
                             style={{width: '350px'}}
                         />
-                        {(this.props.isp[this.props.match.params.country] || [])
+                        {this.props.isp?.[this.props.match.params.country]
                             .filter(isp =>
                                 sites.some(site => {
                                     return site[isp.isp_name] > 0;
@@ -303,9 +303,7 @@ export default connect(
             }
 
             if (
-                !(this.props.chistory[this.props.match.params.year] || {})[
-                    country
-                ]
+                !this.props.chistory?.[this.props.match.params.year]?.[country]
             ) {
                 country_history_fetch(
                     dispatch,
@@ -333,9 +331,7 @@ export default connect(
             this.props.delegate_loading_reset();
 
             if (
-                !(this.props.chistory[year] || {})[
-                    this.props.match.params.country
-                ]
+                !this.props.chistory?.[year]?.[this.props.match.params.country]
             ) {
                 country_history_fetch(
                     dispatch,
@@ -382,7 +378,7 @@ export default connect(
             }
 
             if (
-                !(this.props.chistory[this.props.match.params.year] || {})[
+                !this.props.chistory?.[this.props.match.params.year]?.[
                     this.props.match.params.country
                 ]
             ) {
