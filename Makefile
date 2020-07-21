@@ -17,7 +17,7 @@ build:
 
 up:
 	# the crawlers
-	docker-compose up --build -d crawler-my crawler-vn crawler-mm crawler-kh crawler-id
+	docker-compose up --build -d crawler-my crawler-vn crawler-mm crawler-kh crawler-id crawler-hk
 
 	# the API
 	docker-compose up --build -d backend
@@ -27,7 +27,7 @@ up:
 
 import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi &&\
-		docker-compose up --build importer-global importer-my importer-vn importer-mm importer-kh importer-id
+		docker-compose up --build importer-global importer-my importer-vn importer-mm importer-kh importer-id importer-hk
 
 asn-list:
 	rm -rf asn-list && \
