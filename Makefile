@@ -8,12 +8,14 @@ clean:
 	rm -rf asn-list
 
 build:
-	docker pull node:8 && \
-		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:8 yarn install && \
-		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:8 yarn build
+	docker pull node:10 && \
+		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:10 yarn install && \
+		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:10 yarn build
 
 	docker pull python:3 && \
 		docker-compose build --force-rm
+
+	docker pull abiosoft/caddy
 
 up:
 	# the crawlers
@@ -23,7 +25,7 @@ up:
 	docker-compose up --build -d backend
 
 	# the static react site
-	docker-compose up --build -d frontend
+	docker-compose up -d frontend
 
 import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi &&\
