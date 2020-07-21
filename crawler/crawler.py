@@ -78,7 +78,8 @@ with conn:
 
             conn.commit()
 
-            time.sleep(randint(5,9))
+            sleep_time = int(os.environ.get('SLEEP_TIME', '15'))
+            time.sleep(randint(sleep_time, sleep_time + 7))
 
     conn.begin()
     with conn.cursor() as _cur:
