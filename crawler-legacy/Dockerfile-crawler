@@ -1,8 +1,0 @@
-FROM python:3
-
-RUN pip install python-dateutil requests pymysql cryptography && \
-    mkdir -p /opt/crawler
-
-COPY crawler.py /opt/crawler/crawler.py
-
-CMD ["python", "/opt/crawler/crawler.py"]
