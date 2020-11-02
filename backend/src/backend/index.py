@@ -269,7 +269,7 @@ def db_fetch_summary(hug_db, year):
             """
             SELECT      country, category, count
             FROM        summary_view
-            WHERE       year = %s AND country != 'GLOBAL';
+            WHERE       year = %s;
             """,
             (year,),
         )
