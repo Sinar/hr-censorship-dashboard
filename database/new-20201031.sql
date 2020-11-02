@@ -9,8 +9,46 @@ CREATE TABLE summary_measurements (
     confirmed_count     INTEGER NOT NULL,
     failure_count       INTEGER NOT NULL,
     measurement_count   INTEGER NOT NULL,
-    PRIMARY KEY(year, input, probe_asn)
+    PRIMARY KEY(year, input, probe_asn, probe_cc)
 )
 ENGINE = InnoDB;
+
+
+INSERT
+INTO        summary_measurements (year, input, probe_cc, probe_asn, anomaly_count, confirmed_count, failure_count, measurement_count)
+SELECT      YEAR(m.measurement_start_time) AS year,
+            m.input,
+            m.probe_cc,
+            REPLACE(m.probe_asn, 'AS', '') AS probe_asn,
+            COUNT(NULLIF(m.anomaly, 0)) as anomaly_count,
+            COUNT(NULLIF(m.confirmed, 0)) as confirmed_count,
+            COUNT(NULLIF(m.failure, 0)) as failure_count,
+            COUNT(m.input) AS measurement_count
+FROM        (
+                SELECT      country_code, url, category_code
+                FROM        sites
+                JOIN        (
+                                SELECT      country_code, url, MAX(import_date)
+                                FROM        sites
+                                GROUP BY    country_code, url
+                            ) AS smax
+                USING       (country_code, url)
+            ) AS s
+JOIN        measurements m
+ON          s.url = m.input
+WHERE       YEAR(measurement_start_time) < 2020
+GROUP BY    YEAR(m.measurement_start_time), m.probe_cc, REPLACE(m.probe_asn, 'AS', ''), s.url;
+
+
+TRUNCATE    isp;
+
+INSERT
+INTO        isp(country_code, isp, asn)
+SELECT      DISTINCT m.probe_cc,
+            COALESCE(a.autonomous_system_organization, 'unknown'),
+            REPLACE(m.probe_asn, 'AS', '')
+FROM        summary_measurements m
+LEFT JOIN   asn a
+ON          REPLACE(a.autonomous_system_number, 'AS', '') = REPLACE(m.probe_asn, 'AS', '')
 
 COMMIT;
