@@ -118,7 +118,7 @@ class AnomalySummaryWidget extends Component {
               key="country"
               field="country_name"
               header="Country"
-              style={{ width: "100px" }}
+              style={{ width: "10em" }}
             />
             {Object.keys(this.props.category)
               .sort()
