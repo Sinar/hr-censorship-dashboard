@@ -198,7 +198,7 @@ def db_fetch_country_history(hug_db, year, country):
 
 @hug.local()
 @hug.get("/api/history/year/{year}/country/{country}/site")
-def history_year_country_get_site(request, hug_db, year, country):
+def history_year_country_get_site(request, hug_db, year: int, country):
     assert year < 2020
 
     site = request.params["site"]
@@ -235,7 +235,7 @@ def db_fetch_site_history(hug_db, year, country, site):
 
         row = _cursor.fetchone()
         while row:
-            result[row["probe_asn"]].append(row)
+            result[row["probe_asn"].replace("AS", "")].append(row)
 
             row = _cursor.fetchone()
 
