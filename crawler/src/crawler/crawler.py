@@ -26,6 +26,7 @@ def row_construct(row, url):
         year=int(os.environ.get("YEAR", "2020")),
         input=url,
         probe_cc=os.environ.get("COUNTRY_CODE", "MY"),
+        probe_asn=str(row["probe_asn"]).upper().replace("AS", ""),
     )
 
     return result.keys(), result
@@ -185,7 +186,7 @@ async def run():
             ON          (LOWER(m.probe_cc) = LOWER(i.country_code) AND REPLACE(m.probe_asn, 'AS', '') = i.asn)
             WHERE       LOWER(m.probe_cc) = %s
                         AND m.year = %s
-                        AND i.isp != 'unknown'
+                        AND (sc.category_code IS NOT NULL OR sg.category_code IS NOT NULL)
             GROUP BY    m.year, m.probe_cc, category
             """,
             (
