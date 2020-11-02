@@ -44,9 +44,6 @@ class AppWidget extends Component {
     super(props);
 
     this.handle_load = props.handle_load.bind(this);
-    this.handle_click_anomaly_current = props.handle_click_anomaly_current.bind(
-      this
-    );
     this.handle_click_anomaly_summary = props.handle_click_anomaly_summary.bind(
       this
     );
@@ -173,12 +170,6 @@ export default withRouter(
       retry: state.retry || [],
     }),
     (dispatch) => ({
-      handle_click_anomaly_current(e) {
-        e.preventDefault();
-
-        this.props.history.push(`/current/my`);
-      },
-
       handle_click_anomaly_summary(e) {
         e.preventDefault();
 
