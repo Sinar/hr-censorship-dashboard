@@ -1,13 +1,14 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {DataTable} from 'primereact/datatable';
-import {Column} from 'primereact/column';
-import ReactJson from 'react-json-view';
-import Countries from 'country-list';
-import {ListGroup, ListGroupItem} from 'reactstrap';
-import {make_populate_retry} from './fetcher';
 import {Breadcrumb, BreadcrumbItem} from 'reactstrap';
+import {ListGroup, ListGroupItem} from 'reactstrap';
+import React, {Component} from 'react';
+
+import {Column} from 'primereact/column';
+import Countries from 'country-list';
+import {DataTable} from 'primereact/datatable';
 import {Link} from 'react-router-dom';
+import ReactJson from 'react-json-view';
+import {connect} from 'react-redux';
+import {make_populate_retry} from './fetcher';
 
 function make_populate_incident(data) {
     return {

@@ -1,12 +1,12 @@
-import React, {Component} from 'react';
 import {Nav, NavItem, NavLink} from 'reactstrap';
-import {connect} from 'react-redux';
-import {DataTable} from 'primereact/datatable';
+import React, {Component} from 'react';
+import {anomaly_current_fetch, isp_fetch, site_fetch} from './fetcher.js';
+
 import {Column} from 'primereact/column';
 import Countries from 'country-list';
+import {DataTable} from 'primereact/datatable';
 import {Link} from 'react-router-dom';
-
-import {isp_fetch, anomaly_current_fetch, site_fetch} from './fetcher.js';
+import {connect} from 'react-redux';
 
 class AnomalyCurrentWidget extends Component {
     constructor(props) {

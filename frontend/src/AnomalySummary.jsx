@@ -1,11 +1,12 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {DataTable} from 'primereact/datatable';
-import {Column} from 'primereact/column';
 import {Nav, NavItem, NavLink} from 'reactstrap';
-import {summary_fetch} from './fetcher.js';
+import React, {Component} from 'react';
+
+import {Column} from 'primereact/column';
 import Countries from 'country-list';
+import {DataTable} from 'primereact/datatable';
 import {Link} from 'react-router-dom';
+import {connect} from 'react-redux';
+import {summary_fetch} from './fetcher.js';
 
 class AnomalySummaryWidget extends Component {
     constructor(props) {
