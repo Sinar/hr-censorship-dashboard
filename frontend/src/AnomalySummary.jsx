@@ -131,8 +131,8 @@ class AnomalySummaryWidget extends Component {
                             header="Country"
                             style={{width: '100px'}}
                         />
-                        {Object.entries(this.props.category).map(
-                            ([code, _]) => (
+                        {Object.keys(this.props.category).sort().map(
+                            code => (
                                 <Column
                                     body={this.count_get_template}
                                     key={code}
