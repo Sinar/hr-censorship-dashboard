@@ -199,6 +199,8 @@ def db_fetch_country_history(hug_db, year, country):
 @hug.local()
 @hug.get("/api/history/year/{year}/country/{country}/site")
 def history_year_country_get_site(request, hug_db, year, country):
+    assert year < 2020
+
     site = request.params["site"]
 
     return {
