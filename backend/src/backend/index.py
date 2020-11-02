@@ -1,6 +1,6 @@
+import logging
 import os
 from collections import defaultdict
-from datetime import date, datetime, timedelta
 
 import cachetools.func
 import hug
@@ -9,6 +9,10 @@ import pymysql.cursors
 
 api = hug.API(__name__)
 api.http.add_middleware(hug.middleware.CORSMiddleware(api, max_age=10))
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 def db_connect(db):
