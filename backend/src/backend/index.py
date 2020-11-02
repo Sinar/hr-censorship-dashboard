@@ -76,8 +76,17 @@ def country_get_sites(hug_db, country):
                 GROUP BY   country_code, url
             ) smax
             USING       (import_date, url, country_code)
-            WHERE       LOWER(country_code) IN (%s, 'global')
-            ORDER BY    category_code, url
+            WHERE       LOWER(country_code) = %s
+            UNION
+            SELECT      s.*
+            FROM        sites s
+            JOIN        (
+                SELECT     country_code, url, MAX(import_date) AS import_date
+                FROM       sites
+                GROUP BY   country_code, url
+            ) smax
+            USING       (import_date, url, country_code)
+            WHERE       LOWER(country_code) = 'global'
             """,
             (country.lower(),),
         )
