@@ -157,6 +157,7 @@ def db_get_isp(hug_db, country):
 def history_year_get_country(hug_db, year, country):
 
     return {
+        "year": year,
         "country": country,
         "site_list": [
             {
@@ -179,23 +180,18 @@ def db_fetch_country_history(hug_db, year, country):
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             """
-            SELECT      m.input, i.isp, COUNT(*) AS count
-            FROM        measurements m
+            SELECT      m.input, i.isp, anomaly_count AS count
+            FROM        summary_measurements m
             JOIN        isp i
             ON          i.asn = m.probe_asn
-            WHERE       LOWER(m.probe_cc) = %s
-                        AND (m.anomaly = TRUE OR m.confirmed = TRUE)
-                        AND (m.measurement_start_time BETWEEN '%s-01-01' AND '%s-12-31')
-            GROUP BY    m.input, isp;
+            WHERE       year = %s
+                        AND LOWER(probe_cc) = %s
             """,
-            (country.lower(), int(year), int(year)),
+            (int(year), country.lower()),
         )
 
-        row = _cursor.fetchone()
-        while row:
+        for row in _cursor:
             site_list[row["input"]].append(row)
-
-            row = _cursor.fetchone()
 
     return site_list
 
