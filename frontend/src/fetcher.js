@@ -16,13 +16,6 @@ export function make_retry_done(timestamp) {
   };
 }
 
-function make_populate_anomaly_current(data) {
-  return {
-    type: "POPULATE_ANOMALY_CURRENT",
-    data: data,
-  };
-}
-
 function make_populate_anomaly_country(data) {
   return {
     type: "POPULATE_ANOMALY_COUNTRY",
@@ -70,51 +63,6 @@ function make_populate_summary(data) {
     type: "POPULATE_SUMMARY",
     data: data,
   };
-}
-
-export function anomaly_current_fetch(
-  dispatch,
-  begin_callback,
-  done_callback,
-  country
-) {
-  let timestamp = new Date();
-
-  begin_callback(timestamp);
-  fetch(`${BASE_URL}/api/anomaly/country/${country}`)
-    .then((response) => response.json())
-    .then(
-      (data) => {
-        dispatch(
-          make_populate_anomaly_current({
-            [country]: data.site_list.reduce((current, site) => {
-              current[site.site_url] = site.as_list.reduce((_current, asn) => {
-                _current[asn.as_number] = asn.measurements;
-                return _current;
-              }, {});
-              return current;
-            }, {}),
-          })
-        );
-
-        done_callback(timestamp);
-      },
-      () => {
-        dispatch(
-          make_populate_retry(
-            timestamp,
-            () =>
-              anomaly_current_fetch(
-                dispatch,
-                begin_callback,
-                done_callback,
-                country
-              ),
-            "Current anomaly list fetching failed."
-          )
-        );
-      }
-    );
 }
 
 export function isp_fetch(dispatch, begin_callback, done_callback, country) {

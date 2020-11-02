@@ -14,7 +14,6 @@ import { Route, Switch } from "react-router-dom";
 import { category_fetch, country_fetch, make_retry_done } from "./fetcher";
 
 import AnomalyCountryContainer from "./AnomalyCountry";
-import AnomalyCurrentContainer from "./AnomalyCurrent";
 import AnomalyIncidentContainer from "./AnomalyIncident";
 import AnomalySiteContainer from "./AnomalySite";
 import AnomalySummaryContainer from "./AnomalySummary";
@@ -75,17 +74,6 @@ class AppWidget extends Component {
   panel_get() {
     return (
       <Switch>
-        <Route
-          path="/current/:country"
-          render={(props) => (
-            <AnomalyCurrentContainer
-              {...props}
-              delegate_loading_populate={this.handle_loading_populate}
-              delegate_loading_done={this.handle_loading_done}
-              delegate_loading_reset={this.handle_loading_reset}
-            />
-          )}
-        />
         <Route
           path="/summary/:year/:country/:site(.+)"
           render={(props) => (
@@ -165,10 +153,6 @@ class AppWidget extends Component {
         <Navbar color="light" light expand="md">
           <NavbarBrand href="/">Censorship Dashboard</NavbarBrand>
           <Nav className="ml-auto" navbar>
-            {this.list_link_get(
-              "Current anomaly report",
-              this.handle_click_anomaly_current
-            )}
             {this.list_link_get(
               "Site anomaly summary",
               this.handle_click_anomaly_summary
