@@ -6780,7 +6780,7 @@ __metadata:
     bootstrap: ^4.5.3
     country-list: ^2.2.0
     primeicons: ^4.0.0
-    primereact: ^3.4.0
+    primereact: ^5.0.1
     react: ^17.0.1
     react-dom: ^17.0.1
     react-json-view: ^1.19.1
@@ -11806,10 +11806,12 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"primereact@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "primereact@npm:3.4.0"
-  checksum: 40b4ded931ddefabb5f3dcb2ea17439c9bfedc0006e67506980a32e8fd5ed66fd86161ff13eac457e3197100beb69ecc76e5bf0c45005be49fe1d25b31895f07
+"primereact@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "primereact@npm:5.0.1"
+  peerDependencies:
+    classnames: ^2.2.6
+  checksum: bb84ddd63528f9300ec6713732e7d9fbe9012639d15ff31ddf0ee6a59d77d564f565201f1abe198801d85baaea73b907bed9ce9e3340b092a7213bfb7396bcd4
   languageName: node
   linkType: hard
 

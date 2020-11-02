@@ -9,7 +9,7 @@
     "bootstrap": "^4.5.3",
     "country-list": "^2.2.0",
     "primeicons": "^4.0.0",
-    "primereact": "^3.4.0",
+    "primereact": "^5.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-json-view": "^1.19.1",
