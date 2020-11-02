@@ -13,6 +13,8 @@ CREATE TABLE summary_measurements (
 )
 ENGINE = InnoDB;
 
+CREATE INDEX summary_measurements_idx_year_country ON summary_measurements(year, probe_cc);
+CREATE INDEX summary_measurements_idx_asn ON summary_measurements(probe_asn);
 
 INSERT
 INTO        summary_measurements (year, input, probe_cc, probe_asn, anomaly_count, confirmed_count, failure_count, measurement_count)
