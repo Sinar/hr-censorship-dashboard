@@ -1,9 +1,8 @@
 version: '3'
 services:
     importer-my:
-        build:
-            context: './crawler'
-            dockerfile: './Dockerfile-importer'
+        build: './importer'
+        image: importer
         env_file:
             - envfile
         environment:
@@ -12,9 +11,8 @@ services:
             - ./test-lists:/var/lib/test-lists
         restart: 'no'
     crawler-my:
-        build:
-            context: './crawler'
-            dockerfile: './Dockerfile-crawler'
+        build: './crawler'
+        image: crawler
         env_file:
             - envfile
         environment:
@@ -23,9 +21,8 @@ services:
         restart: 'always'
 
     patcher:
-        build:
-            context: './crawler'
-            dockerfile: './Dockerfile-patcher'
+        build: './patcher'
+        image: patcher
         env_file:
             - envfile
         environment:
@@ -35,9 +32,8 @@ services:
         restart: 'no'
 
     import-asn:
-        build:
-            context: './crawler'
-            dockerfile: './Dockerfile-importer-asn'
+        build: './importer'
+        image: importer
         env_file:
             - envfile
         environment:
