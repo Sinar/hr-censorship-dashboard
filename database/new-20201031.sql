@@ -49,6 +49,6 @@ SELECT      DISTINCT m.probe_cc,
             REPLACE(m.probe_asn, 'AS', '')
 FROM        summary_measurements m
 LEFT JOIN   asn a
-ON          REPLACE(a.autonomous_system_number, 'AS', '') = REPLACE(m.probe_asn, 'AS', '')
+ON          REPLACE(a.autonomous_system_number, 'AS', '') = REPLACE(m.probe_asn, 'AS', '');
 
 COMMIT;
