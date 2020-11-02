@@ -38,7 +38,7 @@ class AnomalySiteWidget extends Component {
                 <br />
                 <Breadcrumb>
                     <BreadcrumbItem>
-                        <Link to="/">Home</Link>
+                        <Link to={`/summary/${(new Date().getFullYear())}`}>Home</Link>
                     </BreadcrumbItem>
                     <BreadcrumbItem>
                         <Link to={`/summary/${this.props.match.params.year}`}>
@@ -111,7 +111,6 @@ class AnomalySiteWidget extends Component {
             let result = null;
 
             if (isp.as_list.some(as => this.history_has_asn(as.as_number))) {
-                console.log();
                 result = (
                     <div key={isp.isp_name}>
                         <h3>{isp.isp_name}</h3>

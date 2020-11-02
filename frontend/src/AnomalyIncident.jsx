@@ -72,7 +72,7 @@ class AnomalyIncidentWidget extends Component {
                     <br />
                     <Breadcrumb>
                         <BreadcrumbItem>
-                            <Link to="/">Home</Link>
+                            <Link to={`/summary/${(new Date().getFullYear())}`}>Home</Link>
                         </BreadcrumbItem>
                         <BreadcrumbItem>
                             <Link

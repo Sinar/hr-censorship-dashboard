@@ -157,7 +157,7 @@ class AnomalyCountryWidget extends Component {
                 <br />
                 <Breadcrumb>
                     <BreadcrumbItem>
-                        <Link to="/">Home</Link>
+                        <Link to={`/summary/${(new Date().getFullYear())}`}>Home</Link>
                     </BreadcrumbItem>
                     <BreadcrumbItem>
                         <Link to={`/summary/${this.props.match.params.year}`}>
