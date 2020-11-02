@@ -201,7 +201,12 @@ class AnomalyCountryWidget extends Component {
                   key={isp.isp_name}
                   field={isp.isp_name}
                   header={isp.isp_name}
-                  style={{ width: "100px" }}
+                  style={{
+                    width: "10em",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                  }}
                 />
               ))}
           </DataTable>
