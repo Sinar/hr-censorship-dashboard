@@ -20,9 +20,9 @@ SELECT      YEAR(m.measurement_start_time) AS year,
             m.input,
             m.probe_cc,
             REPLACE(m.probe_asn, 'AS', '') AS probe_asn,
-            COUNT(NULLIF(m.anomaly, 0)) as anomaly_count,
-            COUNT(NULLIF(m.confirmed, 0)) as confirmed_count,
-            COUNT(NULLIF(m.failure, 0)) as failure_count,
+            COUNT(NULLIF(m.anomaly, 0)) AS anomaly_count,
+            COUNT(NULLIF(m.confirmed, 0)) AS confirmed_count,
+            COUNT(NULLIF(m.failure, 0)) AS failure_count,
             COUNT(m.input) AS measurement_count
 FROM        (
                 SELECT      country_code, url, category_code
