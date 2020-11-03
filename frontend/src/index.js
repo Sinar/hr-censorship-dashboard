@@ -9,16 +9,22 @@ import { HashRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import React from "react";
 import ReactDOM from "react-dom";
-import { createStore } from "redux";
-import dashboardApp from "./dashboard";
+import { configureStore } from "@reduxjs/toolkit";
 import registerServiceWorker from "./registerServiceWorker";
+import { rootReducer } from "./reducers";
+
+var store = configureStore({
+  reducer: rootReducer,
+});
 
 ReactDOM.render(
-  <Provider store={createStore(dashboardApp)}>
-    <HashRouter>
-      <AppContainer />
-    </HashRouter>
-  </Provider>,
+  <React.StrictMode>
+    <Provider store={store}>
+      <HashRouter>
+        <AppContainer />
+      </HashRouter>
+    </Provider>
+  </React.StrictMode>,
   document.getElementById("root")
 );
 registerServiceWorker();
