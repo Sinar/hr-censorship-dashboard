@@ -29,10 +29,10 @@ const taskSlice = createSlice({
         }, []),
       });
     },
-    reset(state, action) {
+    reset(_state, _action) {
       return {
-        load: [],
-        retry: [],
+        loading: [],
+        retrying: [],
       };
     },
     retryingAdd(state, action) {
@@ -49,7 +49,6 @@ const taskSlice = createSlice({
     retryingRemove(state, action) {
       return Object.assign({}, state, {
         retrying: state.retrying.reduce((current, incoming) => {
-          console.log(incoming.date, action.payload);
           if (incoming.date !== action.payload) {
             current.push(incoming);
           }

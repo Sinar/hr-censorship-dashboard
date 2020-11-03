@@ -7,6 +7,7 @@ import {
 
 import { populate as categoryPopulateList } from "../features/meta/CategorySlice";
 import { populate as countryPopulateList } from "../features/meta/CountrySlice";
+import { populate as summaryPopulateList } from "../features/data/SummarySlice";
 
 export const BASE_URL = process.env.REACT_APP_BASE_URL || "";
 
@@ -100,9 +101,10 @@ export const BASE_URL = process.env.REACT_APP_BASE_URL || "";
 //}
 
 export function category_fetch(dispatch) {
-  //let timestamp = new Date();
+  let timestamp = new Date().toJSON();
 
-  //begin_callback(timestamp);
+  dispatch(loadingAdd(timestamp));
+
   fetch(`${BASE_URL}/api/category`)
     .then((response) => response.json())
     .then(
@@ -115,23 +117,23 @@ export function category_fetch(dispatch) {
             }, {})
           )
         );
-        //done_callback(timestamp);
+        dispatch(loadingRemove(timestamp));
       },
       () => {
-        //dispatch(
-        //  make_populate_retry(
-        //    timestamp,
-        //    () => category_fetch(dispatch, begin_callback, done_callback),
-        //    "Category list fetching failed."
-        //  )
-        //);
-        //done_callback(timestamp);
+        dispatch(
+          retryingAdd({
+            date: timestamp,
+            callback: () => category_fetch(dispatch),
+            message: "Category list fetching failed.",
+          })
+        );
+        dispatch(loadingRemove(timestamp));
       }
     );
 }
 
 export function country_fetch(dispatch) {
-  let timestamp = new Date();
+  let timestamp = new Date().toJSON();
 
   dispatch(loadingAdd(timestamp));
 
@@ -287,42 +289,29 @@ export function country_fetch(dispatch) {
 //    );
 //}
 //
-//export function summary_fetch(dispatch, begin_callback, done_callback, year) {
-//  let timestamp = new Date();
-//
-//  begin_callback(timestamp);
-//  fetch(`${BASE_URL}/api/summary/${year}`)
-//    .then((response) => response.json())
-//    .then(
-//      (data) => {
-//        dispatch(
-//          make_populate_summary({
-//            [data.year]: data.country_list.reduce((current, country) => {
-//              current[country.country] = country.category_list.reduce(
-//                (_current, category) => {
-//                  _current[category.category] = category.count;
-//                  return _current;
-//                },
-//                {}
-//              );
-//              return current;
-//            }, {}),
-//          })
-//        );
-//        done_callback(timestamp);
-//      },
-//      () => {
-//        dispatch(
-//          make_populate_retry(
-//            timestamp,
-//            () => summary_fetch(dispatch, begin_callback, done_callback, year),
-//            "Summary fetch failed."
-//          )
-//        );
-//        done_callback(timestamp);
-//      }
-//    );
-//}
+export function summary_fetch(dispatch, year) {
+  let timestamp = new Date().toJSON();
+
+  dispatch(loadingAdd(timestamp));
+  fetch(`${BASE_URL}/api/summary/${year}`)
+    .then((response) => response.json())
+    .then(
+      (data) => {
+        dispatch(summaryPopulateList(data));
+        dispatch(loadingRemove(timestamp));
+      },
+      () => {
+        dispatch(
+          retryingAdd({
+            date: timestamp,
+            callback: () => summary_fetch(dispatch, year),
+            message: "Summary fetch failed.",
+          })
+        );
+        dispatch(loadingRemove(timestamp));
+      }
+    );
+}
 
 export function retry_callback(dispatch, callback, timestamp) {
   dispatch(retryingRemove(timestamp));

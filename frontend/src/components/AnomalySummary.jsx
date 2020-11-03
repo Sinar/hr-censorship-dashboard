@@ -1,139 +1,45 @@
 import { Nav, NavItem, NavLink } from "reactstrap";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useHistory, useParams } from "react-router-dom";
 
 import { Column } from "primereact/column";
 import Countries from "country-list";
 import { DataTable } from "primereact/datatable";
 import { Link } from "react-router-dom";
-import React from "react";
 import _ from "lodash";
-import { useSelector } from "react-redux";
+import { reset } from "../features/ui/TaskSlice";
+import { summary_fetch } from "../libraries/fetcher";
 
-//import { summary_fetch } from "./fetcher.js";
-
-//class AnomalySummaryWidget extends Component {
-//  constructor(props) {
-//    super(props);
-//
-//    this.handle_load = props.handle_load.bind(this);
-//    this.handle_click = props.handle_click.bind(this);
-//    this.handle_click_row = props.handle_click_row.bind(this);
-//
-//    this.country_get_template = this.country_get_template.bind(this);
-//  }
-//
-//  componentDidMount() {
-//    this.handle_load();
-//  }
-//
-//  link_get(country) {
-//    return (
-//      <NavItem>
-//        <NavLink onClick={(e) => this.handle_click(e, country)} href="#">
-//          {country}
-//        </NavLink>
-//      </NavItem>
-//    );
-//  }
-//
-//  summary_get_table() {
-//    return this.props.country_list.map((country) =>
-//      Object.entries(this.props.category).reduce(
-//        (current, [code, _]) => {
-//          current[code] = this.summary_get_category_count(country, code);
-//          return current;
-//        },
-//        {
-//          country_name: Countries.getName(country),
-//          country: country,
-//        }
-//      )
-//    );
-//  }
-//
-//  summary_get_category_count(country, category) {
-//    return (
-//      ((this.props.summary[this.props.match.params.year] || {})[country] || {})[
-//        category
-//      ] || 0
-//    );
-//  }
-//
-//
-//  country_get_template(data_row, column) {
-//    return (
-//      <Link to={`/summary/${this.props.match.params.year}/${data_row.country}`}>
-//        {data_row[column.field]}
-//      </Link>
-//    );
-//  }
-//
-//  count_get_template(data_row, column) {
-//    return (
-//      <span
-//        ref={(ref) => {
-//          if (ref) {
-//            ref.parentElement.classList.remove("text-white", "bg-info");
-//
-//            data_row[column.field] !== 0 &&
-//              ref.parentElement.classList.add("text-white", "bg-info");
-//          }
-//        }}
-//      >
-//        {data_row[column.field]}
-//      </span>
-//    );
-//  }
-//
-//
-//export default connect(
-//  (state) => ({
-//    country_list: state.country || [],
-//    category: state.category || {},
-//    summary: state.summary || {},
-//  }),
-//  (dispatch) => ({
-//
-//    handle_click_row(e) {
-//      this.props.history.push(
-//        `/summary/${this.props.match.params.year}/${e.data.country}`
-//      );
-//    },
-//
-//    handle_load() {
-//      this.props.delegate_loading_reset();
-//
-//      if (!this.props.summary[this.props.match.params.year]) {
-//        summary_fetch(
-//          dispatch,
-//          this.props.delegate_loading_populate,
-//          this.props.delegate_loading_done,
-//          this.props.match.params.year
-//        );
-//      }
-//    },
-//  })
-//)(AnomalySummaryWidget);
-function handle_click(e, year) {
-  //if (!this.props.summary[year]) {
-  //  summary_fetch(
-  //    dispatch,
-  //    this.props.delegate_loading_populate,
-  //    this.props.delegate_loading_done,
-  //    year
-  //  );
-  //}
+function handle_click_row(e, history, year) {
+  history.push(`/summary/${year}/${e.data.country}`);
 }
 
-function navbar_get_year(urlComponent, year) {
+function count_get_template(data_row, column) {
+  return (
+    <span
+      ref={(ref) => {
+        if (ref) {
+          ref.parentElement.classList.remove("text-white", "bg-info");
+
+          data_row[column.field] !== 0 &&
+            ref.parentElement.classList.add("text-white", "bg-info");
+        }
+      }}
+    >
+      {data_row[column.field]}
+    </span>
+  );
+}
+
+function navbar_get_year(current, year) {
   return (
     <NavItem key={year}>
       <NavLink
         tag={(props) => {
           return <Link to={`/summary/${year}`} {...props}></Link>;
         }}
-        active={year === parseInt(urlComponent.year, 10)}
-        onClick={(e) => handle_click(e, year)}
+        active={year === parseInt(current, 10)}
       >
         {year}
       </NavLink>
@@ -141,9 +47,36 @@ function navbar_get_year(urlComponent, year) {
   );
 }
 
-export default function () {
+function summary_get_table(summary, countryList, categoryList) {
+  return countryList.map((country) =>
+    Object.entries(categoryList).reduce(
+      (current, [code, _]) => {
+        current[code] = summary?.[country]?.[code] || 0;
+        return current;
+      },
+      {
+        country_name: Countries.getName(country),
+        country: country,
+      }
+    )
+  );
+}
+
+export default function Widget() {
+  const dispatch = useDispatch();
   const urlComponent = useParams();
   const countryList = useSelector((state) => state.country);
+  const categoryList = useSelector((state) => state.category);
+  const summary = useSelector((state) => state.summary);
+  const history = useHistory();
+
+  useEffect(() => {
+    dispatch(reset());
+
+    if (!(urlComponent.year in summary)) {
+      summary_fetch(dispatch, urlComponent.year);
+    }
+  }, [urlComponent.year, summary, dispatch]);
 
   return (
     <div>
@@ -151,36 +84,45 @@ export default function () {
       <Nav tabs>
         {_.range(2017, new Date().getFullYear() + 1)
           .reverse()
-          .map((year) => navbar_get_year(urlComponent, year))}
+          .map((year) => navbar_get_year(urlComponent.year, year))}
       </Nav>
       <br />
       {Object.keys(countryList || []).length > 0 && (
-        <p>Some country</p>
-        // <DataTable
-        //   value={this.summary_get_table()}
-        //   scrollable={true}
-        //   style={{ width: "100%" }}
-        //   onRowClick={this.handle_click_row}
-        // >
-        //   <Column
-        //     body={this.country_get_template}
-        //     key="country"
-        //     field="country_name"
-        //     header="Country"
-        //     style={{ width: "10em" }}
-        //   />
-        //   {Object.keys(this.props.category)
-        //     .sort()
-        //     .map((code) => (
-        //       <Column
-        //         body={this.count_get_template}
-        //         key={code}
-        //         field={code}
-        //         header={code}
-        //         style={{ width: "75px" }}
-        //       />
-        //     ))}
-        // </DataTable>
+        <React.Fragment>
+          <DataTable
+            value={summary_get_table(
+              summary[urlComponent.year],
+              countryList,
+              categoryList
+            )}
+            scrollable={true}
+            style={{ width: "100%" }}
+            onRowClick={(e) => handle_click_row(e, history, urlComponent.year)}
+          >
+            <Column
+              body={(data_row, column) => (
+                <Link to={`/summary/${urlComponent.year}/${data_row.country}`}>
+                  {data_row[column.field]}
+                </Link>
+              )}
+              key="country"
+              field="country_name"
+              header="Country"
+              style={{ width: "10em" }}
+            />
+            {Object.keys(categoryList)
+              .sort()
+              .map((code) => (
+                <Column
+                  body={count_get_template}
+                  key={code}
+                  field={code}
+                  header={code}
+                  style={{ width: "75px" }}
+                />
+              ))}
+          </DataTable>
+        </React.Fragment>
       )}
     </div>
   );
