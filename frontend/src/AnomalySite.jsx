@@ -107,7 +107,7 @@ class AnomalySiteWidget extends Component {
 
         if (isp.as_list.some((as) => this.history_has_asn(as.as_number))) {
           result = (
-            <div key={isp.isp_name}>
+            <div className="my-5" key={isp.isp_name}>
               <h3>{isp.isp_name}</h3>
               {Object.entries(
                 (((this.props.shistory || {})[this.props.match.params.year] ||
@@ -120,8 +120,8 @@ class AnomalySiteWidget extends Component {
                 })
                 .map(([asn, anomaly_list]) => {
                   return (
-                    <div key={asn}>
-                      <h4>{asn}</h4>
+                    <div className="my-3" key={asn}>
+                      <h4>AS{asn}</h4>
                       <DataTable
                         value={anomaly_list}
                         onRowClick={this.handle_click_row}
@@ -180,7 +180,7 @@ class AnomalySiteWidget extends Component {
     ];
 
     return (
-      <div key="parameter">
+      <div className="my-5" key="parameter">
         <h3>Parameters</h3>
         <DataTable value={data}>
           <Column key="parameter" field="parameter" header="Parameter" />
@@ -195,7 +195,7 @@ class AnomalySiteWidget extends Component {
       <div>
         {this.page_get_breadcrumbs()}
 
-        <h2>Site Anomaly history</h2>
+        <h2 className="my-5">Site Anomaly history</h2>
         {this.parameter_get_table()}
         {this.anomaly_get_list()}
       </div>

@@ -186,14 +186,14 @@ class AnomalyIncidentWidget extends Component {
       <div>
         {this.page_get_breadcrumbs()}
 
-        <h2>
+        <h2 className="my-5">
           Anomaly report for measurement{" "}
           {this.props.match.params.measurement_id}
         </h2>
 
-        <div key="parameters">{this.parameter_get_table()}</div>
+        <div className="my-5" key="parameters">{this.parameter_get_table()}</div>
 
-        <div>
+        <div className="my-5">
           <h3>Method for blocking</h3>
           <p>
             Most probable method of blocking:{" "}
@@ -201,12 +201,12 @@ class AnomalyIncidentWidget extends Component {
           </p>
         </div>
 
-        <div key="events">
+        <div className="my-5" key="events">
           <h3>Notable events</h3>
           {this.event_get_list()}
         </div>
 
-        <div key="measurements">
+        <div className="my-5" key="measurements">
           <h3>Anomaly details</h3>
           <ReactJson
             collapsed="2"

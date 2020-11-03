@@ -174,7 +174,7 @@ class AnomalyCountryWidget extends Component {
 
     if (sites.length > 0) {
       result = (
-        <div key={category.category_code}>
+        <div className="my-5" key={category.category_code}>
           <h3>{category.category_description}</h3>
           <DataTable
             value={sites}
@@ -221,7 +221,7 @@ class AnomalyCountryWidget extends Component {
     return (
       <div>
         {this.page_get_breadcrumbs()}
-        <h2>
+        <h2 className="my-5">
           Anomaly summary for{" "}
           {Countries.getName(this.props.match.params.country)} in year{" "}
           {this.props.match.params.year}
@@ -235,7 +235,7 @@ class AnomalyCountryWidget extends Component {
 
         <br />
 
-        <ButtonGroup>
+        <ButtonGroup className="mb-5">
           {this.year_get_button(2020)}
           {this.year_get_button(2019)}
           {this.year_get_button(2018)}
