@@ -8,11 +8,11 @@ clean:
 	rm -rf asn-list
 
 build:
-	docker pull node:10 && \
-		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:10 yarn install && \
-		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:10 yarn build
+	docker pull node:15 && \
+		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:15 yarn install && \
+		docker run -it --rm -v "${PWD}/frontend":/usr/src/app -w /usr/src/app node:15 yarn build
 
-	docker pull python:3 && \
+	docker pull python:3.9-slim && \
 		docker-compose build --force-rm
 
 	docker pull abiosoft/caddy
