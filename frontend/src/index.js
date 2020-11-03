@@ -4,14 +4,14 @@ import "primereact/resources/themes/bootstrap4-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
-import AppContainer from "./App";
-import { HashRouter } from "react-router-dom";
+import App from "./components/App";
+import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import React from "react";
 import ReactDOM from "react-dom";
 import { configureStore } from "@reduxjs/toolkit";
 import registerServiceWorker from "./registerServiceWorker";
-import { rootReducer } from "./reducers";
+import rootReducer from "./reducers";
 
 var store = configureStore({
   reducer: rootReducer,
@@ -20,9 +20,9 @@ var store = configureStore({
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <HashRouter>
-        <AppContainer />
-      </HashRouter>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </Provider>
   </React.StrictMode>,
   document.getElementById("root")
