@@ -5,8 +5,11 @@ import {
   retryingRemove,
 } from "../features/ui/TaskSlice";
 
+import { populate as aggregatedPopulateList } from "../features/data/AggregatedSlice";
 import { populate as categoryPopulateList } from "../features/meta/CategorySlice";
 import { populate as countryPopulateList } from "../features/meta/CountrySlice";
+import { populate as ispPopulateList } from "../features/meta/ISPSlice";
+import { populate as sitePopulateList } from "../features/meta/SiteSlice";
 import { populate as summaryPopulateList } from "../features/data/SummarySlice";
 
 export const BASE_URL = process.env.REACT_APP_BASE_URL || "";
@@ -75,30 +78,71 @@ export const BASE_URL = process.env.REACT_APP_BASE_URL || "";
 //    data: data,
 //  };
 //}
-//
-//export function isp_fetch(dispatch, begin_callback, done_callback, country) {
-//  let timestamp = new Date();
-//
-//  begin_callback(timestamp);
-//  fetch(`${BASE_URL}/api/isp/${country}`)
-//    .then((response) => response.json())
-//    .then(
-//      (data) => {
-//        dispatch(make_populate_isp({ [data.country]: data.isp }));
-//        done_callback(timestamp);
-//      },
-//      () => {
-//        dispatch(
-//          make_populate_retry(
-//            timestamp,
-//            () => isp_fetch(dispatch, begin_callback, done_callback, country),
-//            "ASN list fetching failed."
-//          )
-//        );
-//        done_callback(timestamp);
-//      }
-//    );
-//}
+
+export function aggregated_fetch(dispatch, year, country) {
+  let timestamp = new Date().toJSON();
+
+  dispatch(loadingAdd(timestamp));
+  fetch(`${BASE_URL}/api/history/year/${year}/country/${country}`)
+    .then((response) => response.json())
+    .then(
+      (data) => {
+        //dispatch(
+        //  make_populate_anomaly_country({
+        //    [year]: {
+        //      [country]: data.site_list.reduce((current, site) => {
+        //        current[site.site_url] = site.isp_list.reduce(
+        //          (_current, incoming) => {
+        //            _current[incoming.isp] = incoming.count;
+        //            return _current;
+        //          },
+        //          {}
+        //        );
+        //        return current;
+        //      }, {}),
+        //    },
+        //  })
+        //);
+        dispatch(aggregatedPopulateList(data));
+        dispatch(loadingRemove(timestamp));
+      },
+      () => {
+        dispatch(
+          retryingAdd({
+            date: timestamp,
+            callback: () => aggregated_fetch(dispatch, year, country),
+            name: "Country history fetching failed.",
+          })
+        );
+        dispatch(loadingRemove(timestamp));
+      }
+    );
+}
+
+export function isp_fetch(dispatch, country) {
+  let timestamp = new Date().toJSON();
+
+  dispatch(loadingAdd(timestamp));
+
+  fetch(`${BASE_URL}/api/isp/${country}`)
+    .then((response) => response.json())
+    .then(
+      (data) => {
+        dispatch(ispPopulateList(data));
+        dispatch(loadingRemove(timestamp));
+      },
+      () => {
+        dispatch(
+          retryingAdd({
+            date: timestamp,
+            callback: () => isp_fetch(dispatch, country),
+            message: "ASN list fetching failed.",
+          })
+        );
+        dispatch(loadingRemove(timestamp));
+      }
+    );
+}
 
 export function category_fetch(dispatch) {
   let timestamp = new Date().toJSON();
@@ -157,89 +201,31 @@ export function country_fetch(dispatch) {
     );
 }
 
-//export function country_history_fetch(
-//  dispatch,
-//  begin_callback,
-//  done_callback,
-//  year,
-//  country
-//) {
-//  let timestamp = new Date();
-//
-//  begin_callback(timestamp);
-//  fetch(`${BASE_URL}/api/history/year/${year}/country/${country}`)
-//    .then((response) => response.json())
-//    .then(
-//      (data) => {
-//        dispatch(
-//          make_populate_anomaly_country({
-//            [year]: {
-//              [country]: data.site_list.reduce((current, site) => {
-//                current[site.site_url] = site.isp_list.reduce(
-//                  (_current, incoming) => {
-//                    _current[incoming.isp] = incoming.count;
-//                    return _current;
-//                  },
-//                  {}
-//                );
-//                return current;
-//              }, {}),
-//            },
-//          })
-//        );
-//        done_callback(timestamp);
-//      },
-//      () => {
-//        dispatch(
-//          make_populate_retry(
-//            timestamp,
-//            () =>
-//              country_history_fetch(
-//                dispatch,
-//                begin_callback,
-//                done_callback,
-//                year,
-//                country
-//              ),
-//            "Country history fetching failed."
-//          )
-//        );
-//        done_callback(timestamp);
-//      }
-//    );
-//}
-//
-//export function site_fetch(dispatch, begin_callback, done_callback, country) {
-//  let timestamp = new Date();
-//
-//  begin_callback(timestamp);
-//  fetch(`${BASE_URL}/api/site/${country}`)
-//    .then((response) => response.json())
-//    .then(
-//      (data) => {
-//        dispatch(
-//          make_populate_site({
-//            [country]: data.category_list.reduce((current, category) => {
-//              current[category.code] = category.site_list;
-//              return current;
-//            }, {}),
-//          })
-//        );
-//        done_callback(timestamp);
-//      },
-//      () => {
-//        dispatch(
-//          make_populate_retry(
-//            timestamp,
-//            () => site_fetch(dispatch, begin_callback, done_callback, country),
-//            "Site list fetching failed"
-//          )
-//        );
-//        done_callback(timestamp);
-//      }
-//    );
-//}
-//
+export function site_fetch(dispatch, country) {
+  let timestamp = new Date().toJSON();
+
+  dispatch(loadingAdd(timestamp));
+
+  fetch(`${BASE_URL}/api/site/${country}`)
+    .then((response) => response.json())
+    .then(
+      (data) => {
+        dispatch(sitePopulateList(data));
+        dispatch(loadingRemove(timestamp));
+      },
+      () => {
+        dispatch(
+          retryingAdd({
+            date: timestamp,
+            callback: () => site_fetch(dispatch, country),
+            message: "Site list fetching failed",
+          })
+        );
+        dispatch(loadingRemove(timestamp));
+      }
+    );
+}
+
 //export function site_fetch_history(
 //  dispatch,
 //  begin_callback,

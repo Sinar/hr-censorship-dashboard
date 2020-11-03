@@ -18,7 +18,7 @@ import {
 } from "../libraries/fetcher";
 import { useDispatch, useSelector } from "react-redux";
 
-//import AnomalyCountryContainer from "./AnomalyCountry";
+import AnomalyCountry from "./AnomalyCountry";
 //import AnomalyIncidentContainer from "./AnomalyIncident";
 //import AnomalySiteContainer from "./AnomalySite";
 import AnomalySummary from "./AnomalySummary";
@@ -30,9 +30,7 @@ import { withRouter } from "react-router";
 function list_link_get(label) {
   return (
     <NavItem>
-      <NavLink tag={(props) => <Link to="/" {...props}></Link>}>
-        {label}
-      </NavLink>
+      <NavLink tag={(props) => <Link to="/" {...props} />}>{label}</NavLink>
     </NavItem>
   );
 }
@@ -68,6 +66,9 @@ function panel_get() {
       <Route exact path="/">
         <Redirect to={`/summary/${new Date().getFullYear()}`} />
       </Route>
+      <Route path="/summary/:year/:country">
+        <AnomalyCountry />
+      </Route>
       <Route path="/summary/:year">
         <AnomalySummary />
       </Route>
@@ -78,17 +79,6 @@ function panel_get() {
         //          path="/summary/:year/:country/:site(.+)"
         //          render={(props) => (
         //            <AnomalySiteContainer
-        //              {...props}
-        //              delegate_loading_populate={this.handle_loading_populate}
-        //              delegate_loading_done={this.handle_loading_done}
-        //              delegate_loading_reset={this.handle_loading_reset}
-        //            />
-        //          )}
-        //        />
-        //        <Route
-        //          path="/summary/:year/:country"
-        //          render={(props) => (
-        //            <AnomalyCountryContainer
         //              {...props}
         //              delegate_loading_populate={this.handle_loading_populate}
         //              delegate_loading_done={this.handle_loading_done}

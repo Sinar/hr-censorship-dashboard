@@ -4,12 +4,12 @@ const ispSlice = createSlice({
   name: "isp",
   initialState: {},
   reducers: {
-    blah(state, action) {
-      state["foo"] = "bar";
+    populate(state, action) {
+      state[action.payload.country] = action.payload.isp;
     },
   },
 });
 
-export const { blah } = ispSlice.actions;
+export const { populate } = ispSlice.actions;
 
 export default ispSlice.reducer;
