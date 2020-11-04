@@ -24,13 +24,6 @@ import { Link } from "react-router-dom";
 import _ from "lodash";
 import { reset } from "../features/ui/TaskSlice";
 
-//
-//
-//
-//    handle_load() {
-//    },
-//  })
-//)(AnomalyCountryWidget);
 function category_get_sites(category, siteList, country, aggregated, ispList) {
   return (
     siteList?.[country]?.[category?.category_code]

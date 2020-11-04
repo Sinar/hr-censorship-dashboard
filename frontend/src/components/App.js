@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import AnomalyCountry from "./AnomalyCountry";
 //import AnomalyIncidentContainer from "./AnomalyIncident";
-//import AnomalySiteContainer from "./AnomalySite";
+import AnomalySite from "./AnomalySite";
 import AnomalySummary from "./AnomalySummary";
 import { Container } from "reactstrap";
 import { Link } from "react-router-dom";
@@ -66,26 +66,17 @@ function panel_get() {
       <Route exact path="/">
         <Redirect to={`/summary/${new Date().getFullYear()}`} />
       </Route>
+      <Route path="/summary/:year/:country/:site(.+)">
+        <AnomalySite />
+      </Route>
       <Route path="/summary/:year/:country">
         <AnomalyCountry />
       </Route>
       <Route path="/summary/:year">
         <AnomalySummary />
       </Route>
-
       {
         //
-        //        <Route
-        //          path="/summary/:year/:country/:site(.+)"
-        //          render={(props) => (
-        //            <AnomalySiteContainer
-        //              {...props}
-        //              delegate_loading_populate={this.handle_loading_populate}
-        //              delegate_loading_done={this.handle_loading_done}
-        //              delegate_loading_reset={this.handle_loading_reset}
-        //            />
-        //          )}
-        //        />
         //        <Route
         //          path="/incident/:measurement_id"
         //          render={(props) => (

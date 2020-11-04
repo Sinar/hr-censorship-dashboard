@@ -9,6 +9,7 @@ import { populate as aggregatedPopulateList } from "../features/data/AggregatedS
 import { populate as categoryPopulateList } from "../features/meta/CategorySlice";
 import { populate as countryPopulateList } from "../features/meta/CountrySlice";
 import { populate as ispPopulateList } from "../features/meta/ISPSlice";
+import { populate as measurementPopulateList } from "../features/data/MeasurementSlice";
 import { populate as sitePopulateList } from "../features/meta/SiteSlice";
 import { populate as summaryPopulateList } from "../features/data/SummarySlice";
 
@@ -87,22 +88,6 @@ export function aggregated_fetch(dispatch, year, country) {
     .then((response) => response.json())
     .then(
       (data) => {
-        //dispatch(
-        //  make_populate_anomaly_country({
-        //    [year]: {
-        //      [country]: data.site_list.reduce((current, site) => {
-        //        current[site.site_url] = site.isp_list.reduce(
-        //          (_current, incoming) => {
-        //            _current[incoming.isp] = incoming.count;
-        //            return _current;
-        //          },
-        //          {}
-        //        );
-        //        return current;
-        //      }, {}),
-        //    },
-        //  })
-        //);
         dispatch(aggregatedPopulateList(data));
         dispatch(loadingRemove(timestamp));
       },
@@ -201,6 +186,41 @@ export function country_fetch(dispatch) {
     );
 }
 
+export function measurement_fetch(dispatch, year, country, site) {
+  let timestamp = new Date().toJSON();
+
+  dispatch(loadingAdd(timestamp));
+  fetch(
+    year < 2020
+      ? `${BASE_URL}/api/history/year/${year}/country/${country}/site/?site=${site}`
+      : `https://api.ooni.io/api/v1/measurements?input=${site}&since=${year}-01-01&until=${year}-12-31&probe_cc=${country}`
+  )
+    .then((response) => response.json())
+    .then(
+      (data) => {
+        dispatch(
+          measurementPopulateList({
+            year: year,
+            country: country,
+            site: site,
+            data: data.results || [],
+          })
+        );
+        dispatch(loadingRemove(timestamp));
+      },
+      () => {
+        dispatch(
+          retryingAdd({
+            date: timestamp,
+            callback: () => measurement_fetch(dispatch, year, country, site),
+            message: "Site history fetching failed",
+          })
+        );
+        dispatch(loadingRemove(timestamp));
+      }
+    );
+}
+
 export function site_fetch(dispatch, country) {
   let timestamp = new Date().toJSON();
 
@@ -225,56 +245,6 @@ export function site_fetch(dispatch, country) {
       }
     );
 }
-
-//export function site_fetch_history(
-//  dispatch,
-//  begin_callback,
-//  done_callback,
-//  year,
-//  country,
-//  site
-//) {
-//  let timestamp = new Date();
-//
-//  begin_callback(timestamp);
-//  fetch(
-//    `${BASE_URL}/api/history/year/${year}/country/${country}/site/?site=${site}`
-//  )
-//    .then((response) => response.json())
-//    .then(
-//      (data) => {
-//        dispatch(
-//          make_populate_site_history({
-//            [year]: {
-//              [country]: {
-//                [site]: data.history,
-//              },
-//            },
-//          })
-//        );
-//        done_callback(timestamp);
-//      },
-//      () => {
-//        dispatch(
-//          make_populate_retry(
-//            timestamp,
-//            () =>
-//              site_fetch_history(
-//                dispatch,
-//                begin_callback,
-//                done_callback,
-//                year,
-//                country,
-//                site
-//              ),
-//            "Site history fetching failed"
-//          )
-//        );
-//        done_callback(timestamp);
-//      }
-//    );
-//}
-//
 export function summary_fetch(dispatch, year) {
   let timestamp = new Date().toJSON();
 
