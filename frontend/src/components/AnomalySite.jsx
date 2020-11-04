@@ -1,7 +1,7 @@
 import { Breadcrumb, BreadcrumbItem } from "reactstrap";
-import React, { Component, useEffect } from "react";
-import { connect, useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
 import { isp_fetch, measurement_fetch } from "../libraries/fetcher.js";
+import { useDispatch, useSelector } from "react-redux";
 
 import { Column } from "primereact/column";
 import Countries from "country-list";
@@ -11,31 +11,6 @@ import { reset } from "../features/ui/TaskSlice";
 import { useHistory } from "react-router";
 import { useParams } from "react-router-dom";
 
-//class AnomalySiteWidget extends Component {
-//  constructor(props) {
-//    super(props);
-//
-//    this.handle_load = props.handle_load.bind(this);
-//    this.handle_click_row = props.handle_click_row.bind(this);
-//
-//    this.measurement_get_template = this.measurement_get_template.bind(this);
-//  }
-//
-//  componentDidMount() {
-//    this.handle_load();
-//  }
-//
-//
-//
-//export default connect(
-//  (state) => ({
-//    shistory: state.history_site || {},
-//    isp: state.isp || {},
-//  }),
-//  (dispatch) => ({
-//
-//  })
-//)(AnomalySiteWidget);
 function anomaly_get_list(
   year,
   country,
