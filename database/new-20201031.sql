@@ -26,18 +26,7 @@ SELECT      YEAR(m.measurement_start_time) AS year,
             COUNT(NULLIF(m.confirmed, 0)) AS confirmed_count,
             COUNT(NULLIF(m.failure, 0)) AS failure_count,
             COUNT(m.input) AS measurement_count
-FROM        (
-                SELECT      country_code, url, category_code
-                FROM        sites
-                JOIN        (
-                                SELECT      country_code, url, MAX(import_date)
-                                FROM        sites
-                                GROUP BY    country_code, url
-                            ) AS smax
-                USING       (country_code, url)
-            ) AS s
-JOIN        measurements m
-ON          s.url = m.input
+FROM        measurements m
 WHERE       YEAR(measurement_start_time) < 2020
 GROUP BY    YEAR(m.measurement_start_time), m.probe_cc, REPLACE(m.probe_asn, 'AS', ''), s.url;
 
