@@ -1,0 +1,7 @@
+.python-version
+.vscode
+__pycache__
+asn-list
+test-lists
+envfile
+docker-compose.yml
