@@ -19,7 +19,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 import AnomalyCountry from "./AnomalyCountry";
-//import AnomalyIncidentContainer from "./AnomalyIncident";
+import AnomalyIncident from "./AnomalyIncident";
 import AnomalySite from "./AnomalySite";
 import AnomalySummary from "./AnomalySummary";
 import { Container } from "reactstrap";
@@ -75,20 +75,9 @@ function panel_get() {
       <Route path="/summary/:year">
         <AnomalySummary />
       </Route>
-      {
-        //
-        //        <Route
-        //          path="/incident/:measurement_id"
-        //          render={(props) => (
-        //            <AnomalyIncidentContainer
-        //              {...props}
-        //              delegate_loading_populate={this.handle_loading_populate}
-        //              delegate_loading_done={this.handle_loading_done}
-        //              delegate_loading_reset={this.handle_loading_reset}
-        //            />
-        //          )}
-        //        />
-      }
+      <Route path="/incident/:report_id/:site(.+)">
+        <AnomalyIncident />
+      </Route>
     </Switch>
   );
 }

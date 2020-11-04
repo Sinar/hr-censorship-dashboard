@@ -65,14 +65,18 @@ function anomaly_get_list(
                 <DataTable
                   value={anomaly_list}
                   onRowClick={(e) =>
-                    history.push(`/incident/${e.data.measurement_id}`)
+                    history.push(`/incident/${e.data.report_id}/${site}`)
                   }
                 >
                   <Column
-                    body={measurement_get_template}
-                    key="measurement_id"
-                    field="measurement_id"
-                    header="Measurement ID"
+                    body={(data_row, column) => (
+                      <Link to={`/incident/${data_row[column.field]}/${site}`}>
+                        {data_row[column.field]}
+                      </Link>
+                    )}
+                    key="report_id"
+                    field="report_id"
+                    header="Report ID"
                   />
                   <Column
                     body={anomaly_get_template}
@@ -141,14 +145,6 @@ function anomaly_get_template(data_row, _column) {
     >
       {outcome("Yes (confirmed)", "Yes (unconfirmed)", "No")}
     </span>
-  );
-}
-
-function measurement_get_template(data_row, column) {
-  return (
-    <Link to={`/incident/${data_row[column.field]}`}>
-      {data_row[column.field]}
-    </Link>
   );
 }
 
