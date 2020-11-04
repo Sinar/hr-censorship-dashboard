@@ -196,6 +196,7 @@ def db_fetch_country_history(hug_db, year, country):
     return site_list
 
 
+# this mimics the result returned by ooni
 @hug.local()
 @hug.get("/api/history/year/{year}/country/{country}/site")
 def history_year_country_get_site(request, hug_db, year: int, country):
@@ -204,15 +205,13 @@ def history_year_country_get_site(request, hug_db, year: int, country):
     site = request.params["site"]
 
     return {
-        "year": year,
-        "country": country,
-        "site": site,
-        "history": db_fetch_site_history(hug_db, year, country, site),
+        "metadata": {},
+        "results": db_fetch_site_history(hug_db, year, country, site),
     }
 
 
 def db_fetch_site_history(hug_db, year, country, site):
-    result = defaultdict(list)
+    result = []
 
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
@@ -235,7 +234,7 @@ def db_fetch_site_history(hug_db, year, country, site):
 
         row = _cursor.fetchone()
         while row:
-            result[row["probe_asn"].replace("AS", "")].append(row)
+            result.append(row)
 
             row = _cursor.fetchone()
 
