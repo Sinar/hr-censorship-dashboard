@@ -28,7 +28,7 @@ SELECT      YEAR(m.measurement_start_time) AS year,
             COUNT(m.input) AS measurement_count
 FROM        measurements m
 WHERE       YEAR(measurement_start_time) < 2020
-GROUP BY    YEAR(m.measurement_start_time), m.probe_cc, REPLACE(m.probe_asn, 'AS', ''), s.url;
+GROUP BY    YEAR(m.measurement_start_time), m.probe_cc, REPLACE(m.probe_asn, 'AS', ''), m.input;
 
 
 TRUNCATE    isp;
