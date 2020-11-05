@@ -180,12 +180,14 @@ def db_fetch_country_history(hug_db, year, country):
     with db_connect(hug_db).cursor() as _cursor:
         _cursor.execute(
             """
-            SELECT      m.input, i.isp, anomaly_count AS count
+            SELECT      m.input, i.isp, SUM(anomaly_count) AS count
             FROM        summary_measurements m
             JOIN        isp i
             ON          i.asn = m.probe_asn
-            WHERE       year = %s
-                        AND LOWER(probe_cc) = %s
+            WHERE       m.year = %s
+                        AND LOWER(m.probe_cc) = %s
+                        AND m.anomaly_count > 0
+            GROUP BY    m.input, i.isp
             """,
             (int(year), country.lower()),
         )
