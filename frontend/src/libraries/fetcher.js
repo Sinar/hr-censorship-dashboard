@@ -163,32 +163,37 @@ export function measurement_fetch(dispatch, year, country, site) {
   fetch(
     year < 2020
       ? `${BASE_URL}/api/history/year/${year}/country/${country}/site/?site=${site}`
-      : `https://api.ooni.io/api/v1/measurements?input=${site}&since=${year}-01-01&until=${year}-12-31&probe_cc=${country}`
+      : `https://api.ooni.io/api/v1/measurements?input=${site}&since=${year}-01-01&until=${year}-12-31&probe_cc=${country}&order_by=measurement_start_time&order=desc&limit=100&anomaly=true`
   )
-    .then((response) => response.json())
-    .then(
-      (data) => {
-        dispatch(
-          measurementPopulateList({
-            year: year,
-            country: country,
-            site: site,
-            data: data.results || [],
-          })
-        );
-        dispatch(loadingRemove(timestamp));
-      },
-      () => {
-        dispatch(
-          retryingAdd({
-            date: timestamp,
-            callback: () => measurement_fetch(dispatch, year, country, site),
-            message: "Site history fetching failed",
-          })
-        );
-        dispatch(loadingRemove(timestamp));
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Unable to fetch");
       }
-    );
+
+      return response.json();
+    })
+    .then((data) => {
+      dispatch(
+        measurementPopulateList({
+          year: year,
+          country: country,
+          site: site,
+          data: data.results || [],
+        })
+      );
+      dispatch(loadingRemove(timestamp));
+    })
+    .catch(() => {
+      console.log("retry");
+      dispatch(
+        retryingAdd({
+          date: timestamp,
+          callback: () => measurement_fetch(dispatch, year, country, site),
+          message: "Site history fetching failed",
+        })
+      );
+      dispatch(loadingRemove(timestamp));
+    });
 }
 
 export function site_fetch(dispatch, country) {
