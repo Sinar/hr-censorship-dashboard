@@ -54,10 +54,11 @@ async def crawl_country(crawl_date, country, conn, session):
             """
             SELECT      year, month, crawl_date
             FROM        summary_measurements
-            WHERE       probe_cc = 'MY'
+            WHERE       probe_cc = %s
             ORDER BY    crawl_date DESC, year DESC, month DESC
             LIMIT       1;
-            """
+            """,
+            (country,),
         )
         previous = mode_cursor.fetchone()
 
