@@ -93,7 +93,7 @@ export default withRouter(function (props) {
   }, [dispatch]);
 
   return (
-    <Container>
+    <Container id="top">
       <Navbar color="light" light expand="md">
         <NavbarBrand href="/">Censorship Dashboard</NavbarBrand>
         <Nav className="ml-auto" navbar>
