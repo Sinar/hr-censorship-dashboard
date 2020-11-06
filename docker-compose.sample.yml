@@ -1,43 +1,119 @@
-version: '3'
+version: "3"
 services:
-    importer-my:
-        build: './importer'
-        image: importer
-        env_file:
-            - envfile
-        environment:
-            IMPORT_FILE: '/var/lib/test-lists/lists/my.csv'
-        volumes:
-            - ./test-lists:/var/lib/test-lists
-        restart: 'no'
-    crawler-my:
-        build: './crawler'
-        image: crawler
-        env_file:
-            - envfile
-        environment:
-            SLEEP_TIME: 1
-            COUNTRY_CODE: 'MY'
-        restart: 'always'
-
-    patcher:
-        build: './patcher'
-        image: patcher
-        env_file:
-            - envfile
-        environment:
-            IMPORT_FILE: '/var/lib/ooni-data/ooni-data.jsonl'
-        volumes:
-            - ./ooni-data:/var/lib/ooni-data
-        restart: 'no'
-
-    import-asn:
-        build: './importer'
-        image: importer
-        env_file:
-            - envfile
-        environment:
-            IMPORT_FILE: '/var/lib/asn-list/GeoLite2-ASN-Blocks-IPv4.csv'
-        volumes:
-            - ./asn-list:/var/lib/asn-list
-        restart: 'no'
+  importer-global:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/global.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-hk:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/hk.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-id:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/id.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-kh:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/kh.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-mm:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/mm.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-my:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/my.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-th:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/th.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  importer-vn:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/test-lists/lists/vn.csv"
+    volumes:
+      - ./test-lists:/var/lib/test-lists
+    restart: "no"
+  crawler:
+    build: "./crawler"
+    image: crawler
+    env_file:
+      - envfile
+    environment:
+      SLEEP_TIME: 1
+      COUNTRIES: "MY,TH"
+    restart: "no"
+  import-asn:
+    build: "./importer"
+    image: importer
+    env_file:
+      - envfile
+    environment:
+      IMPORT_FILE: "/var/lib/asn-list/GeoLite2-ASN-Blocks-IPv4.csv"
+    volumes:
+      - ./asn-list:/var/lib/asn-list
+    restart: "no"
+  backend:
+    build: "./backend"
+    image: backend
+    env_file:
+      - envfile
+    environment:
+      CACHE_SIZE: 2048
+    ports:
+      - 80:8000
+    restart: always
+  frontend:
+    image: caddy
+    ports:
+      - "0.0.0.0:482:80"
+    volumes:
+      - "./frontend/build:/srv"
+      - "./frontend/Caddyfile:/etc/caddy/Caddyfile"
+    restart: "always"

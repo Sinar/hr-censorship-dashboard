@@ -15,11 +15,11 @@ build:
 	docker pull python:3.9-slim && \
 		docker-compose build --force-rm
 
-	docker pull abiosoft/caddy
+	docker pull caddy
 
 up:
 	# the crawlers
-	docker-compose up --build -d crawler-my crawler-vn crawler-mm crawler-kh crawler-id crawler-hk
+	docker-compose up --build -d crawler
 
 	# the API
 	docker-compose up --build -d backend
@@ -29,13 +29,10 @@ up:
 
 import:
 	if cd test-lists; then git pull; else git clone https://github.com/citizenlab/test-lists/ test-lists; fi &&\
-		docker-compose up --build importer-global importer-my importer-vn importer-mm importer-kh importer-id importer-hk
+		docker-compose up --build importer-global importer-my importer-vn importer-mm importer-kh importer-id importer-hk importer-th
 
 asn-list:
 	rm -rf asn-list && \
 		curl -L -o GeoLite2-ASN-CSV.zip "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=${GEOIP_LICENSE}&suffix=zip" && \
 		unzip -j GeoLite2-ASN-CSV.zip -d asn-list && \
 		rm GeoLite2-ASN-CSV.zip
-
-patcher:
-	docker-compose up patcher
