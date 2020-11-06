@@ -27,7 +27,7 @@ def sleep(country):
     )
 
 
-def condition_get_seeding(current_date, first_day, last_day, crawl_date):
+def condition_get_seeding(current_date, last_day, crawl_date):
     return (
         last_day <= crawl_date
         and last_day.year <= current_date.year
@@ -293,7 +293,7 @@ def previous_get_mode(current_date, year, month, crawl_date):
     ):
         result = MODE_CRAWLING
     elif condition_get_seeding(
-        current_date, datetime(year, month, 1), last_day, crawl_date
+        current_date, last_day, crawl_date
     ):
         result = MODE_SEEDING
 
