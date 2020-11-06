@@ -147,7 +147,7 @@ function overview_get_table(summary, year, country, categoryList) {
 }
 
 function summary_get_chart(sites, year, country, ispSubset) {
-  let colors = [
+  const colors = [
     "#d16ba5",
     "#c777b9",
     "#ba83ca",
@@ -165,41 +165,21 @@ function summary_get_chart(sites, year, country, ispSubset) {
     <Chart
       type="bar"
       data={{
-        labels: sites?.map((incoming) => truncate(incoming.site, 50, "...")),
+        labels: sites?.map((incoming) => truncate(incoming.site, 25, "...")),
         datasets: ispSubset?.map((isp, idx) => {
           return {
             type: "bar",
-            label: isp.isp_name,
+            label: truncate(isp.isp_name, 25, "..."),
             backgroundColor: colors[idx % colors.length],
             data: sites?.map((site) => site[isp.isp_name]),
           };
         }),
-        //datasets: [
-        //  {
-        //    type: "bar",
-        //    label: "Dataset 1",
-        //    backgroundColor: "#42A5F5",
-        //    data: [50, 25, 12, 48, 90, 76, 42],
-        //  },
-        //  {
-        //    type: "bar",
-        //    label: "Dataset 2",
-        //    backgroundColor: "#66BB6A",
-        //    data: [21, 84, 24, 75, 37, 65, 34],
-        //  },
-        //  {
-        //    type: "bar",
-        //    label: "Dataset 3",
-        //    backgroundColor: "#FFA726",
-        //    data: [41, 52, 24, 74, 23, 21, 32],
-        //  },
-        //],
       }}
       options={{
-        //tooltips: {
-        //  mode: "index",
-        //  intersect: false,
-        //},
+        tooltips: {
+          mode: "index",
+          intersect: false,
+        },
         responsive: true,
         scales: {
           xAxes: [
