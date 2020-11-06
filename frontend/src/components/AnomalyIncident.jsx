@@ -20,7 +20,7 @@ function event_get_list(eventList) {
     (eventList.length > 0 && (
       <ListGroup>
         {eventList.map((event) => (
-          <ListGroupItem key={event.link} href={event.link}>
+          <ListGroupItem key={event.link} tag="a" href={event.link}>
             {event.label}
           </ListGroupItem>
         ))}
@@ -116,7 +116,12 @@ function parameter_get_table(incident, report_id) {
       <h3>Parameters</h3>
       <DataTable value={data}>
         <Column key="parameter" field="parameter" header="Parameter" />
-        <Column key="value" field="value" header="Value" />
+        <Column
+          key="value"
+          field="value"
+          header="Value"
+          style={{ overflowWrap: "break-word" }}
+        />
       </DataTable>
     </div>
   );

@@ -52,6 +52,7 @@ function anomaly_get_list(
                     key="report_id"
                     field="report_id"
                     header="Report ID"
+                    style={{ overflowWrap: "break-word" }}
                   />
                   <Column
                     body={anomaly_get_template}
