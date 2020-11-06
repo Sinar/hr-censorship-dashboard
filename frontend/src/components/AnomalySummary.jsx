@@ -79,51 +79,94 @@ export default function Widget() {
   }, [urlComponent.year, summary, dispatch]);
 
   return (
-    <div>
+    <React.Fragment>
       <h2 className="my-5">Anomaly summary for year {urlComponent.year}</h2>
       <Nav tabs>
         {_.range(2017, new Date().getFullYear() + 1)
           .reverse()
           .map((year) => navbar_get_year(urlComponent.year, year))}
       </Nav>
-      <br />
+
+      <div className="my-3">
+        <p>
+          The table below shows an overview of interview censorship for each
+          respective country. The data is collected by the{" "}
+          <a href="https://ooni.org/">
+            Open Observatory of Network Interference (OONI)
+          </a>{" "}
+          through contributions by volunteers submitting their measurement
+          reports.
+        </p>
+        <p>
+          Each number in the table is the number of sites volunteers in the
+          respective country found inaccessible (an anomaly) through OONI's
+          probe. Each column corresponds to a category, defined by the{" "}
+          <a href="https://github.com/citizenlab/test-lists">test list</a>,
+          where each site is assigned one. Non-zero entries are shaded to aid
+          reading.
+        </p>
+        <p>
+          Clicking any row or the country name will load further details for the
+          respective country.
+        </p>
+      </div>
+
       {Object.keys(countryList || []).length > 0 && (
-        <React.Fragment>
-          <DataTable
-            value={summary_get_table(
-              summary[urlComponent.year],
-              countryList,
-              categoryList
+        <DataTable
+          value={summary_get_table(
+            summary[urlComponent.year],
+            countryList,
+            categoryList
+          )}
+          scrollable={true}
+          style={{ width: "100%" }}
+          onRowClick={(e) => handle_click_row(e, history, urlComponent.year)}
+        >
+          <Column
+            body={(data_row, column) => (
+              <Link to={`/summary/${urlComponent.year}/${data_row.country}`}>
+                {data_row[column.field]}
+              </Link>
             )}
-            scrollable={true}
-            style={{ width: "100%" }}
-            onRowClick={(e) => handle_click_row(e, history, urlComponent.year)}
-          >
-            <Column
-              body={(data_row, column) => (
-                <Link to={`/summary/${urlComponent.year}/${data_row.country}`}>
-                  {data_row[column.field]}
-                </Link>
-              )}
-              key="country"
-              field="country_name"
-              header="Country"
-              style={{ width: "10em" }}
-            />
-            {Object.keys(categoryList)
-              .sort()
-              .map((code) => (
-                <Column
-                  body={count_get_template}
-                  key={code}
-                  field={code}
-                  header={code}
-                  style={{ width: "75px" }}
-                />
-              ))}
-          </DataTable>
-        </React.Fragment>
+            key="country"
+            field="country_name"
+            header="Country"
+            style={{ width: "10em" }}
+          />
+          {Object.keys(categoryList)
+            .sort()
+            .map((code) => (
+              <Column
+                body={count_get_template}
+                key={code}
+                field={code}
+                header={code}
+                style={{ width: "75px" }}
+              />
+            ))}
+        </DataTable>
       )}
-    </div>
+
+      <div className="my-3">
+        <p>
+          When an entry is zero, it may be because OONI does not have data
+          reporting an anomaly for the respective country and category, or we
+          did not collect data for that case in the particular year. In that
+          case, please use the OONI's data explorer, or contribute by joining
+          the measurement or maintaining the test list.
+        </p>
+        <p>
+          If you are interested in contributing to internet censorship research,
+          please follow{" "}
+          <a href="https://ooni.org/install/">this guide from OONI</a>. On the
+          other hand, if you are interested in help maintaining the list of
+          websites to be measured, please check{" "}
+          <a href="https://ooni.org/get-involved/contribute-test-lists/">
+            this page
+          </a>{" "}
+          for more information.
+        </p>
+      </div>
+    </React.Fragment>
   );
 }

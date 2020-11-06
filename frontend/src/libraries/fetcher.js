@@ -163,7 +163,7 @@ export function measurement_fetch(dispatch, year, country, site) {
   fetch(
     year < 2020
       ? `${BASE_URL}/api/history/year/${year}/country/${country}/site/?site=${site}`
-      : `https://api.ooni.io/api/v1/measurements?input=${site}&since=${year}-01-01&until=${year}-12-31&probe_cc=${country}&order_by=measurement_start_time&order=desc&limit=100&anomaly=true`
+      : `https://api.ooni.io/api/v1/measurements?test_name=web_connectivity&input=${site}&probe_cc=${country.toUpperCase()}&limit=1000&anomaly=true`
   )
     .then((response) => {
       if (!response.ok) {
@@ -178,13 +178,17 @@ export function measurement_fetch(dispatch, year, country, site) {
           year: year,
           country: country,
           site: site,
-          data: data.results || [],
+          data:
+            data.results?.filter(
+              (incoming) =>
+                new Date(incoming.measurement_start_time).getFullYear() ===
+                parseInt(year, 10)
+            ) || [],
         })
       );
       dispatch(loadingRemove(timestamp));
     })
     .catch(() => {
-      console.log("retry");
       dispatch(
         retryingAdd({
           date: timestamp,

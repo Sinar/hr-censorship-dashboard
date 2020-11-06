@@ -3,10 +3,12 @@ import React, { useEffect } from "react";
 import { isp_fetch, measurement_fetch } from "../libraries/fetcher.js";
 import { useDispatch, useSelector } from "react-redux";
 
+import { Chart } from "primereact/chart";
 import { Column } from "primereact/column";
 import Countries from "country-list";
 import { DataTable } from "primereact/datatable";
 import { Link } from "react-router-dom";
+import _ from "lodash";
 import { reset } from "../features/ui/TaskSlice";
 import { useHistory } from "react-router";
 import { useParams } from "react-router-dom";
@@ -34,53 +36,11 @@ function anomaly_get_list(
             .filter(([asn, _]) => {
               return isp.as_list.map((as) => as.as_number).includes(asn);
             })
-            .map(([asn, anomaly_list]) => (
+            .map(([asn, anomalyList]) => (
               <div className="my-3" key={asn}>
                 <h4>AS{asn}</h4>
-                <DataTable
-                  value={anomaly_list}
-                  onRowClick={(e) =>
-                    history.push(`/incident/${e.data.report_id}/${site}`)
-                  }
-                >
-                  <Column
-                    body={(data_row, column) => (
-                      <Link to={`/incident/${data_row[column.field]}/${site}`}>
-                        {data_row[column.field]}
-                      </Link>
-                    )}
-                    key="report_id"
-                    field="report_id"
-                    header="Report ID"
-                  />
-                  <Column
-                    body={anomaly_get_template}
-                    key="anomaly"
-                    field="anomaly"
-                    header="Is anomaly"
-                  />
-                  <Column
-                    key="measurement_start_time"
-                    field="measurement_start_time"
-                    header="Measurement Time"
-                  />
-                  <Column
-                    key="measurement_url"
-                    field="measurement_url"
-                    header="Measurement URL"
-                  />
-                  <Column
-                    key="test_name"
-                    field="test_name"
-                    header="Test name"
-                  />
-                  <Column
-                    body={status_get_template}
-                    key="failure"
-                    field="failure"
-                    header="Test error"
-                  />
-                </DataTable>
+                {asn_get_graph(anomalyList)}
+                {asn_get_table(anomalyList, history, site)}
               </div>
             ))}
         </div>
@@ -123,14 +83,157 @@ function anomaly_get_template(data_row, _column) {
   );
 }
 
+function asn_get_graph(anomalyList) {
+  const colors = [
+      "#d16ba5",
+      "#c777b9",
+      "#ba83ca",
+      "#aa8fd8",
+      "#9a9ae1",
+      "#8aa7ec",
+      "#79b3f4",
+      "#69bff8",
+      "#52cffe",
+      "#41dfff",
+      "#46eefa",
+      "#5ffbf1",
+    ],
+    reducer = function (criteria) {
+      return anomalyList?.reduce(
+        (current, incoming) => {
+          let result = current;
+
+          if (criteria(incoming)) {
+            result = current?.map((value, month) =>
+              month === new Date(incoming.measurement_start_time).getMonth()
+                ? value + 1
+                : value
+            );
+          }
+
+          return result;
+        },
+        month_get_names().map((_) => 0)
+      );
+    };
+  return (
+    <Chart
+      type="bar"
+      data={{
+        labels: month_get_names(),
+        datasets: [
+          {
+            type: "bar",
+            label: "anomaly",
+            backgroundColor: colors[colors.length - 1],
+            data: reducer((incoming) => Boolean(incoming.anomaly)),
+          },
+          {
+            type: "bar",
+            label: "confirmed",
+            backgroundColor: colors[0],
+            data: reducer((incoming) => Boolean(incoming.confirmed)),
+          },
+        ],
+      }}
+      options={{
+        tooltips: {
+          mode: "index",
+          intersect: false,
+        },
+        responsive: true,
+        scales: {
+          xAxes: [
+            {
+              ticks: {
+                fontColor: "#495057",
+              },
+              gridLines: {
+                color: "#ebedef",
+              },
+            },
+          ],
+          yAxes: [
+            {
+              ticks: {
+                fontColor: "#495057",
+              },
+              gridLines: {
+                color: "#ebedef",
+              },
+            },
+          ],
+        },
+        legend: {
+          labels: {
+            fontColor: "#495057",
+          },
+        },
+      }}
+    />
+  );
+}
+
+function asn_get_table(anomalyList, history, site) {
+  return (
+    <DataTable
+      value={anomalyList}
+      onRowClick={(e) => history.push(`/incident/${e.data.report_id}/${site}`)}
+    >
+      <Column
+        body={(data_row, column) => (
+          <Link to={`/incident/${data_row[column.field]}/${site}`}>
+            {data_row[column.field]}
+          </Link>
+        )}
+        key="report_id"
+        field="report_id"
+        header="Report ID"
+        style={{ overflowWrap: "break-word" }}
+      />
+      <Column
+        body={anomaly_get_template}
+        key="anomaly"
+        field="anomaly"
+        header="Is anomaly"
+      />
+      <Column
+        key="measurement_start_time"
+        field="measurement_start_time"
+        header="Measurement Time"
+      />
+      <Column
+        key="measurement_url"
+        field="measurement_url"
+        header="Measurement URL"
+        style={{ overflowWrap: "break-word" }}
+      />
+      <Column key="test_name" field="test_name" header="Test name" />
+      <Column
+        body={status_get_template}
+        key="failure"
+        field="failure"
+        header="Test error"
+      />
+    </DataTable>
+  );
+}
+
 function history_has_asn(asn, year, country, site, measurementList) {
   return asn in (measurementList?.[year]?.[country]?.[site] || {});
 }
 
+function month_get_names() {
+  return _.range(12).map((month) =>
+    new Date(new Date().getFullYear(), month, 1).toLocaleString("default", {
+      month: "long",
+    })
+  );
+}
+
 function page_get_breadcrumbs(year, country, site) {
   return (
-    <div>
-      <br />
+    <div className="my-4">
       <Breadcrumb>
         <BreadcrumbItem>
           <Link to={`/summary/${new Date().getFullYear()}`}>Home</Link>
@@ -218,6 +321,29 @@ export default function Widget() {
       )}
 
       <h2 className="my-5">Site Anomaly history</h2>
+
+      <p>
+        This page lists the number of anomalies for a given site, separated by
+        Autonomous Systems (AS) provided by each Internet Service Provider
+        (ISP). The graph shows the count for each month for the given AS.
+      </p>
+
+      {parseInt(urlComponent.year, 10) === 2020 && (
+        <p>
+          <strong>Important note: </strong>
+          Due to the limit set by OONI, we are currently unable to cache the
+          list of measurements in our database since year 2020. Hence this page
+          is pulling the data directly from OONI's server. Each user is allowed
+          to pull only a specified amount of data within an hour, a day and a
+          week. Please retry again after an hour if you keep getting message
+          saying data is failed to load.
+        </p>
+      )}
+
+      <p>
+        Click on the report ID to load the complete detail for the measurement.
+      </p>
+
       {parameter_get_table(
         urlComponent.year,
         urlComponent.country,

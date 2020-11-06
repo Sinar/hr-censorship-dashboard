@@ -9,24 +9,29 @@ import Countries from "country-list";
 import { DataTable } from "primereact/datatable";
 import { Link } from "react-router-dom";
 import ReactJson from "react-json-view";
+import { Spinner } from "reactstrap";
 import { useParams } from "react-router";
 
-function event_empty_list() {
-  return <p>No data from wikidata</p>;
+function event_empty_list(loading) {
+  return loading.length === 0 ? (
+    <p>No data from wikidata</p>
+  ) : (
+    <Spinner color="primary" />
+  );
 }
 
-function event_get_list(eventList) {
+function event_get_list(eventList, loading) {
   return (
     (eventList.length > 0 && (
       <ListGroup>
         {eventList.map((event) => (
-          <ListGroupItem key={event.link} href={event.link}>
+          <ListGroupItem key={event.link} tag="a" href={event.link}>
             {event.label}
           </ListGroupItem>
         ))}
       </ListGroup>
     )) ||
-    event_empty_list()
+    event_empty_list(loading)
   );
 }
 
@@ -116,7 +121,12 @@ function parameter_get_table(incident, report_id) {
       <h3>Parameters</h3>
       <DataTable value={data}>
         <Column key="parameter" field="parameter" header="Parameter" />
-        <Column key="value" field="value" header="Value" />
+        <Column
+          key="value"
+          field="value"
+          header="Value"
+          style={{ overflowWrap: "break-word" }}
+        />
       </DataTable>
     </div>
   );
@@ -186,7 +196,8 @@ export default function Widget() {
             incident_get_date(
               incidentList?.[urlComponent.report_id]?.[urlComponent.site]
             )
-          ] || []
+          ] || [],
+          useSelector((state) => state.task.loading)
         )}
       </div>
 
