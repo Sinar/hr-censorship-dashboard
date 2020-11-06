@@ -233,8 +233,7 @@ function month_get_names() {
 
 function page_get_breadcrumbs(year, country, site) {
   return (
-    <div>
-      <br />
+    <div className="my-4">
       <Breadcrumb>
         <BreadcrumbItem>
           <Link to={`/summary/${new Date().getFullYear()}`}>Home</Link>
@@ -322,6 +321,29 @@ export default function Widget() {
       )}
 
       <h2 className="my-5">Site Anomaly history</h2>
+
+      <p>
+        This page lists the number of anomalies for a given site, separated by
+        Autonomous Systems (AS) provided by each Internet Service Provider
+        (ISP). The graph shows the count for each month for the given AS.
+      </p>
+
+      {parseInt(urlComponent.year, 10) === 2020 && (
+        <p>
+          <strong>Important note: </strong>
+          Due to the limit set by OONI, we are currently unable to cache the
+          list of measurements in our database since year 2020. Hence this page
+          is pulling the data directly from OONI's server. Each user is allowed
+          to pull only a specified amount of data within an hour, a day and a
+          week. Please retry again after an hour if you keep getting message
+          saying data is failed to load.
+        </p>
+      )}
+
+      <p>
+        Click on the report ID to load the complete detail for the measurement.
+      </p>
+
       {parameter_get_table(
         urlComponent.year,
         urlComponent.country,
