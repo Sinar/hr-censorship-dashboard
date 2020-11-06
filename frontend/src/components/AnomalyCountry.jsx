@@ -7,6 +7,7 @@ import {
   NavItem,
   NavLink,
 } from "reactstrap";
+import { Col, Row } from "reactstrap";
 import React, { useEffect } from "react";
 import {
   aggregated_fetch,
@@ -74,11 +75,20 @@ function category_get_summary(
   if (sites?.length > 0) {
     result = (
       <div className="my-5" key={category.category_code}>
-        <h3>
+        <h3 id={category.category_code}>
           {category.category_description} ({sites.length} sites)
         </h3>
+
+        <p className="my-3">{category.category_description}</p>
+
         {summary_get_chart(sites, year, country, ispSubset)}
         {summary_get_table(sites, history, year, country, ispSubset)}
+
+        <p className="my-3">
+          <a href="#top">
+            <i className="pi pi-arrow-up"></i> Back to top
+          </a>
+        </p>
       </div>
     );
   }
@@ -109,8 +119,7 @@ function isp_filter(ispList, country, sites) {
 
 function page_get_breadcrumbs(year, country) {
   return (
-    <div>
-      <br />
+    <div className="my-4">
       <Breadcrumb>
         <BreadcrumbItem>
           <Link to={`/summary/${new Date().getFullYear()}`}>Home</Link>
@@ -135,13 +144,22 @@ function overview_get_table(summary, year, country, categoryList) {
     ) || [];
   return (
     <DataTable value={data}>
-      <Column key="category" field="category" header="Category code" />
+      <Column
+        key="category"
+        field="category"
+        header="Category code"
+        body={(data_row, column) => {
+          return (
+            <a href={`#${data_row[column.field]}`}>{data_row[column.field]}</a>
+          );
+        }}
+      />
       <Column
         key="description"
         field="description"
         header="Category description"
       />
-      <Column key="count" field="count" header="Anomaly count" />
+      <Column key="count" field="count" header="Site count" />
     </DataTable>
   );
 }
@@ -360,12 +378,34 @@ export default function Widget() {
       </ButtonGroup>
 
       <h3>Overview</h3>
-      {overview_get_table(
-        summary,
-        urlComponent.year,
-        urlComponent.country,
-        categoryList
-      )}
+
+      <Row>
+        <Col>
+          {overview_get_table(
+            summary,
+            urlComponent.year,
+            urlComponent.country,
+            categoryList
+          )}
+        </Col>
+        <Col md="4">
+          <p>
+            This table shows the number of sites that were inaccessible (an
+            anomaly).
+          </p>
+          <p>
+            The rest of the page may take a bit of time to load. When it is
+            done, a chart and a table is shown for each category. Each number in
+            the table shows the number of anomaly report OONI collected
+            throughout the year. You can click on the category code in the
+            overview table to quickly jump to the relevant section immediately.
+          </p>
+          <p>
+            Click on the website URL to load a list of anomaly reports we cached
+            (for year before 2020) or directly from OONI.
+          </p>
+        </Col>
+      </Row>
 
       {Object.entries(
         summary?.[urlComponent.year]?.[urlComponent.country] || {}
