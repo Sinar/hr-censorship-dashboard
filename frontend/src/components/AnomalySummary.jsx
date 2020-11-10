@@ -47,19 +47,21 @@ function navbar_get_year(current, year) {
   );
 }
 
-function summary_get_table(summary, countryList, categoryList) {
-  return countryList.map((country) =>
-    Object.entries(categoryList).reduce(
-      (current, [code, _]) => {
-        current[code] = summary?.[country]?.[code] || 0;
-        return current;
-      },
-      {
-        country_name: Countries.getName(country),
-        country: country,
-      }
+function summary_get_table(summary, year, countryList, categoryList) {
+  return countryList
+    ?.map((country) =>
+      Object.entries(categoryList).reduce(
+        (current, [code, _]) => {
+          current[code] = summary?.[year]?.[country]?.[code] || 0;
+          return current;
+        },
+        {
+          country_name: Countries.getName(country),
+          country: country,
+        }
+      )
     )
-  );
+    .sort((alpha, beta) => alpha.country_name.localeCompare(beta.country_name));
 }
 
 export default function Widget() {
@@ -114,7 +116,8 @@ export default function Widget() {
       {Object.keys(countryList || []).length > 0 && (
         <DataTable
           value={summary_get_table(
-            summary[urlComponent.year],
+            summary,
+            urlComponent.year,
             countryList,
             categoryList
           )}
