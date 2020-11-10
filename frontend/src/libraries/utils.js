@@ -15,3 +15,24 @@ export function truncate(fullStr, strLen, separator) {
     fullStr.substr(fullStr.length - backChars)
   );
 }
+
+export function envGetYearFilters(theYear) {
+  const filterParse = (filter) => {
+    return filter.substring(0, 1) === "-"
+      ? (incoming) =>
+          !(incoming.toLowerCase() === filter.substring(1).toLowerCase())
+      : (incoming) =>
+          incoming.toLowerCase() === filter.substring(1).toLowerCase();
+  };
+
+  return (
+    (process.env?.REACT_APP_COUNTRIES || "")
+      .split(";")
+      .reduce((current, incoming) => {
+        let [year, filters] = incoming.split("|");
+        current[year] = filters.split(",").map(filterParse);
+
+        return current;
+      }, {})[theYear] || []
+  );
+}

@@ -8,6 +8,7 @@ import Countries from "country-list";
 import { DataTable } from "primereact/datatable";
 import { Link } from "react-router-dom";
 import _ from "lodash";
+import { envGetYearFilters } from "../libraries/utils";
 import { reset } from "../features/ui/TaskSlice";
 import { summary_fetch } from "../libraries/fetcher";
 
@@ -47,19 +48,27 @@ function navbar_get_year(current, year) {
   );
 }
 
-function summary_get_table(summary, countryList, categoryList) {
-  return countryList.map((country) =>
-    Object.entries(categoryList).reduce(
-      (current, [code, _]) => {
-        current[code] = summary?.[country]?.[code] || 0;
-        return current;
-      },
-      {
-        country_name: Countries.getName(country),
-        country: country,
-      }
+function summary_get_table(summary, year, countryList, categoryList) {
+  return countryList
+    ?.filter((country_code) =>
+      envGetYearFilters(year).reduce(
+        (result, _filter) => result && _filter(country_code),
+        true
+      )
     )
-  );
+    ?.map((country) =>
+      Object.entries(categoryList).reduce(
+        (current, [code, _]) => {
+          current[code] = summary?.[year]?.[country]?.[code] || 0;
+          return current;
+        },
+        {
+          country_name: Countries.getName(country),
+          country: country,
+        }
+      )
+    )
+    .sort((alpha, beta) => alpha.country_name.localeCompare(beta.country_name));
 }
 
 export default function Widget() {
@@ -114,7 +123,8 @@ export default function Widget() {
       {Object.keys(countryList || []).length > 0 && (
         <DataTable
           value={summary_get_table(
-            summary[urlComponent.year],
+            summary,
+            urlComponent.year,
             countryList,
             categoryList
           )}

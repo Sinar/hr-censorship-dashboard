@@ -70,12 +70,19 @@ async def crawl_country(crawl_date, country, conn, session):
             previous["month"],
         )
 
-        param = mode_get_param(
-            previous_get_mode(crawl_date, **previous),
-            crawl_date,
-            previous["year"],
-            previous["month"],
-        )
+        try:
+            param = mode_get_param(
+                previous_get_mode(crawl_date, **previous),
+                crawl_date,
+                previous["year"],
+                previous["month"],
+            )
+        except KeyError:
+            param = {
+                "mode": "SEED",
+                "start": datetime(datetime.now().year, 1, 1),
+                "end": month_adder(datetime.now().year, 2, 1),
+            }
         logging.info(
             "%s: operating_mode=%s, start=%s, end=%s",
             country,
@@ -292,9 +299,7 @@ def previous_get_mode(current_date, year, month, crawl_date):
         current_date, datetime(year, month, 1), last_day, crawl_date
     ):
         result = MODE_CRAWLING
-    elif condition_get_seeding(
-        current_date, last_day, crawl_date
-    ):
+    elif condition_get_seeding(current_date, last_day, crawl_date):
         result = MODE_SEEDING
 
     return result

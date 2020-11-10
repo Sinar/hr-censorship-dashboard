@@ -10,8 +10,8 @@ import { Provider } from "react-redux";
 import React from "react";
 import ReactDOM from "react-dom";
 import { configureStore } from "@reduxjs/toolkit";
-import registerServiceWorker from "./registerServiceWorker";
 import rootReducer from "./reducers";
+import { unregister } from "./registerServiceWorker";
 
 var store = configureStore({
   reducer: rootReducer,
@@ -27,4 +27,7 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById("root")
 );
-registerServiceWorker();
+
+// do not need a service worker for now
+// would redo this properly when needed
+unregister();
