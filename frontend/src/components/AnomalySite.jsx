@@ -21,8 +21,10 @@ function anomaly_get_list(
   measurementList,
   history
 ) {
-  return ((ispList || {})[country] || []).map((isp) => {
-    let result = null;
+  return [...(ispList?.[country] || [])]
+    ?.sort((alpha, beta) => alpha.isp_name.localeCompare(beta.isp_name))
+    ?.map((isp) => {
+      let result = null;
 
     if (
       isp.as_list.some((as) =>
