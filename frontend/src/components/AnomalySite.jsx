@@ -26,31 +26,37 @@ function anomaly_get_list(
     ?.map((isp) => {
       let result = null;
 
-    if (
-      isp.as_list.some((as) =>
-        history_has_asn(as.as_number, year, country, site, measurementList)
-      )
-    ) {
-      result = (
-        <div className="my-5" key={isp.isp_name}>
-          <h3>{isp.isp_name}</h3>
-          {Object.entries(measurementList?.[year]?.[country]?.[site] || {})
-            .filter(([asn, _]) => {
-              return isp.as_list.map((as) => as.as_number).includes(asn);
-            })
-            .map(([asn, anomalyList]) => (
-              <div className="my-3" key={asn}>
-                <h4>AS{asn}</h4>
-                {asn_get_graph(anomalyList)}
-                {asn_get_table(anomalyList, history, site)}
-              </div>
-            ))}
-        </div>
-      );
-    }
+      if (
+        isp.as_list.some((as) =>
+          history_has_asn(as.as_number, year, country, site, measurementList)
+        )
+      ) {
+        result = (
+          <div className="my-5" key={isp.isp_name}>
+            <h3>{isp.isp_name}</h3>
+            {Object.entries(measurementList?.[year]?.[country]?.[site] || {})
+              .filter(([asn, _]) => {
+                return isp.as_list.map((as) => as.as_number).includes(asn);
+              })
+              .sort(
+                ([alpha, _a], [beta, _b]) =>
+                  parseInt(alpha, 10) - parseInt(beta, 10)
+              )
+              .map(([asn, anomalyList]) => {
+                return (
+                  <div className="my-3" key={asn}>
+                    <h4>AS{asn}</h4>
+                    {asn_get_graph(anomalyList)}
+                    {asn_get_table(anomalyList, history, site)}
+                  </div>
+                );
+              })}
+          </div>
+        );
+      }
 
-    return result;
-  });
+      return result;
+    });
 }
 
 function anomaly_get_template(data_row, _column) {
