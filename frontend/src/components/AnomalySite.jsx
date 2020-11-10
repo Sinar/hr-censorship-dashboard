@@ -185,7 +185,11 @@ function asn_get_graph(anomalyList) {
 function asn_get_table(anomalyList, history, site) {
   return (
     <DataTable
-      value={anomalyList}
+      value={[...anomalyList]?.sort(
+        (alpha, beta) =>
+          new Date(beta.measurement_start_time) <
+          new Date(alpha.measurement_start_time)
+      )}
       onRowClick={(e) => history.push(`/incident/${e.data.report_id}/${site}`)}
     >
       <Column
