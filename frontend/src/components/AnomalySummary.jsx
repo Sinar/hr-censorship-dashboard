@@ -8,6 +8,7 @@ import Countries from "country-list";
 import { DataTable } from "primereact/datatable";
 import { Link } from "react-router-dom";
 import _ from "lodash";
+import { envGetYearFilters } from "../libraries/utils";
 import { reset } from "../features/ui/TaskSlice";
 import { summary_fetch } from "../libraries/fetcher";
 
@@ -49,6 +50,12 @@ function navbar_get_year(current, year) {
 
 function summary_get_table(summary, year, countryList, categoryList) {
   return countryList
+    ?.filter((country_code) =>
+      envGetYearFilters(year).reduce(
+        (result, _filter) => result && _filter(country_code),
+        true
+      )
+    )
     ?.map((country) =>
       Object.entries(categoryList).reduce(
         (current, [code, _]) => {
