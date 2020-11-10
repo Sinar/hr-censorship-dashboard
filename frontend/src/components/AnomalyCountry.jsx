@@ -49,7 +49,8 @@ function category_get_sites(category, siteList, country, aggregated, ispList) {
         Object.entries(site || {}).some(
           ([property, value]) => property !== "site" && value > 0
         )
-      ) || []
+      )
+      ?.sort((alpha, beta) => alpha.site.localeCompare(beta.site)) || []
   );
 }
 
