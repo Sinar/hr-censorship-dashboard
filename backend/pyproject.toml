@@ -10,7 +10,7 @@ hug = "^2.6.1"
 gunicorn = "^20.0.4"
 PyMySQL = "^0.10.1"
 cachetools = "^4.1.1"
-cryptography = "^3.2.1"
+cryptography = "^39.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
