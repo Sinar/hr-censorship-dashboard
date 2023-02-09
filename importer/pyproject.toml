@@ -7,7 +7,7 @@ authors = ["Jeffrey04 <mycyberpet@yahoo.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 dask = {extras = ["dataframe"], version = "^2.30.0"}
-cryptography = "^3.2.1"
+cryptography = "^39.0.1"
 PyMySQL = "^0.10.1"
 odo = {git = "https://github.com/blaze/odo"}
 SQLAlchemy = "^1.3.20"
